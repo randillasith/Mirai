@@ -1,24 +1,25 @@
 package com.randillasith.miraiserver.store;
 
-import com.randillasith.miraiserver.model.*;
+import com.randillasith.miraiserver.model.Session;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ParkingStore {
 
-    // Active parking sessions
-    public static final Map<String, Session> activeSessions = new HashMap<>();
+    // Active parking sessions (uid -> session)
+    public static final Map<String, Session> activeSessions = new ConcurrentHashMap<>();
 
-    // Parking history
-    public static final List<ParkingRecord> history = new ArrayList<>();
-
-    // Registered vehicles
-    public static final Map<String, RegVehicle> registeredVehicles = new HashMap<>();
-
-    // Slot occupancy
+    // Parking slots
     public static boolean slot1Occ = false;
     public static boolean slot2Occ = false;
 
-    // 💰 NEW SIMPLE COST LOGIC
-    public static double ratePerSecond = 1.0; // Rs per second (changeable)
+    // Rate
+    public static double ratePerSecond = 1.0;
+
+    // ✅ ADD THIS METHOD
+    public static Collection<Session> getAll() {
+        return activeSessions.values();
+    }
 }

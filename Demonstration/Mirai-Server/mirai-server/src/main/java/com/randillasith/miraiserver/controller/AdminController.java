@@ -1,39 +1,41 @@
 package com.randillasith.miraiserver.controller;
 
-import com.randillasith.miraiserver.model.RegVehicle;
-import com.randillasith.miraiserver.store.ParkingStore;
+import com.randillasith.miraiserver.model.VehicleEntity;
+import com.randillasith.miraiserver.service.VehicleService;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.*;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/admin")
 public class AdminController {
 
-    // Get all vehicles
-    @GetMapping("/vehicles")
-    public Collection<RegVehicle> getVehicles() {
-        return ParkingStore.registeredVehicles.values();
+    private final VehicleService vehicleService;
+
+    public AdminController(VehicleService vehicleService) {
+        this.vehicleService = vehicleService;
     }
 
-    // Add or update vehicle
+    // Add / update vehicle
     @GetMapping("/add")
     public String addVehicle(
-            @RequestParam String veh,
-            @RequestParam(required = false) String name) {
+            @RequestParam String vehicle,
+            @RequestParam String name) {
 
-        RegVehicle rv = new RegVehicle();
-        rv.vehicle = veh.toUpperCase();
-        rv.name = name == null ? "" : name;
-
-        ParkingStore.registeredVehicles.put(rv.vehicle, rv);
+        vehicleService.save(vehicle.toUpperCase(), name);
         return "OK";
     }
 
+    // List vehicles
+    @GetMapping("/list")
+    public List<VehicleEntity> listVehicles() {
+        return vehicleService.findAll();
+    }
+
     // Remove vehicle
-    @GetMapping("/remove")
-    public String removeVehicle(@RequestParam String veh) {
-        ParkingStore.registeredVehicles.remove(veh.toUpperCase());
+    @GetMapping("/delete")
+    public String deleteVehicle(@RequestParam String vehicle) {
+        vehicleService.delete(vehicle.toUpperCase());
         return "OK";
     }
 }

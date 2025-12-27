@@ -20,15 +20,20 @@
             background: #222;
             padding: 20px;
             border-radius: 12px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.6);
         }
 
+        a { color: #4caf50; text-decoration: none; }
+
         input, button {
-            padding: 8px;
+            padding: 8px 12px;
             margin: 5px;
             border-radius: 6px;
             border: none;
             font-size: 14px;
         }
+
+        input { width: 160px; }
 
         button {
             background: #4caf50;
@@ -39,7 +44,7 @@
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 10px;
+            margin-top: 15px;
         }
 
         th, td {
@@ -47,15 +52,9 @@
             padding: 6px;
         }
 
-        th {
-            background: #333;
-        }
+        th { background: #333; }
 
-        a {
-            color: #4caf50;
-            text-decoration: none;
-            font-size: 14px;
-        }
+        hr { margin: 25px 0; }
     </style>
 </head>
 
@@ -63,72 +62,71 @@
 
 <div class="card">
     <div style="text-align:left;">
-        <a href="/index.html">← Back to Dashboard</a>
+        <a href="/">← Back to Dashboard</a>
     </div>
 
     <h2>🚗 Admin – Vehicle Registration</h2>
 
+    <!-- ================= VEHICLE REG ================= -->
     <input id="veh" placeholder="VH001">
     <input id="name" placeholder="Owner / Description">
     <button onclick="addVehicle()">Add / Update</button>
 
-    <hr>
-
     <h3>Registered Vehicles</h3>
     <div id="list">Loading...</div>
+
+    <hr>
+
+    <!-- ================= RATE CONTROL ================= -->
+    <h3>💰 Parking Rate</h3>
+    <p>Current Rate: <b>Rs <span id="rate">-</span></b> per second</p>
+
+    <input id="rateInput" type="number" min="1" step="1">
+    <button onclick="updateRate()">Update Rate</button>
 </div>
-<hr>
-
-<h3>💰 Parking Rate (Admin)</h3>
-<p>Current Rate: Rs <span id="adminRate">-</span> per second</p>
-
-<input id="adminRateInput" type="number" step="0.1" min="0">
-<button onclick="updateRate()">Update Rate</button>
 
 <script>
-    async function loadRate() {
-        const res = await fetch('/api/status');
-        const data = await res.json();
+    /* ================= VEHICLES ================= */
 
-        document.getElementById('adminRate').textContent = data.ratePerSecond;
-        document.getElementById('adminRateInput').value = data.ratePerSecond;
-    }
-
-    async function updateRate() {
-        const rate = document.getElementById('adminRateInput').value;
-        await fetch(`/api/setRate?rate=${rate}`);
-        loadRate(); // refresh display
-    }
-
-    /* Load on page open */
-    loadRate();
-</script>
-
-
-<script>
     async function loadVehicles() {
-        const res = await fetch('/api/admin/vehicles');
-        const data = await res.json();
+        try {
+            const res = await fetch('/api/admin/list');
+            const data = await res.json();
 
-        if (data.length === 0) {
-            document.getElementById('list').innerHTML = '<p>No vehicles registered</p>';
-            return;
+            if (data.length === 0) {
+                document.getElementById('list').innerHTML =
+                    '<p>No registered vehicles</p>';
+                return;
+            }
+
+            let html = `
+            <table>
+                <tr>
+                    <th>Vehicle ID</th>
+                    <th>Owner</th>
+                    <th>Action</th>
+                </tr>`;
+
+            for (let v of data) {
+                html += `
+                <tr>
+                    <td>${v.vehicleId}</td>
+                    <td>${v.ownerName || ''}</td>
+                    <td>
+                        <button onclick="deleteVehicle('${v.vehicleId}')">
+                            Delete
+                        </button>
+                    </td>
+                </tr>`;
+            }
+
+            html += '</table>';
+            document.getElementById('list').innerHTML = html;
+
+        } catch (e) {
+            document.getElementById('list').innerHTML = 'Error loading data';
+            console.error(e);
         }
-
-        let html = '<table><tr><th>Vehicle</th><th>Name</th><th>Action</th></tr>';
-
-        for (let v of data) {
-            html += `<tr>
-            <td>${v.vehicle}</td>
-            <td>${v.name}</td>
-            <td>
-                <button onclick="removeVehicle('${v.vehicle}')">Delete</button>
-            </td>
-        </tr>`;
-        }
-
-        html += '</table>';
-        document.getElementById('list').innerHTML = html;
     }
 
     async function addVehicle() {
@@ -137,18 +135,41 @@
 
         if (!veh) return;
 
-        await fetch(`/api/admin/add?veh=${veh}&name=${name}`);
+        await fetch(`/api/admin/add?vehicle=${veh}&name=${name}`);
+
         document.getElementById('veh').value = '';
         document.getElementById('name').value = '';
+
         loadVehicles();
     }
 
-    async function removeVehicle(veh) {
-        await fetch(`/api/admin/remove?veh=${veh}`);
+    async function deleteVehicle(vehicle) {
+        await fetch(`/api/admin/delete?vehicle=${vehicle}`);
         loadVehicles();
     }
+
+    /* ================= RATE ================= */
+
+    async function loadRate() {
+        const res = await fetch('/api/status');
+        const data = await res.json();
+
+        document.getElementById('rate').textContent = data.ratePerSecond;
+        document.getElementById('rateInput').value = data.ratePerSecond;
+    }
+
+    async function updateRate() {
+        const rate = document.getElementById('rateInput').value;
+        if (!rate || rate <= 0) return;
+
+        await fetch(`/api/setRate?rate=${rate}`);
+        loadRate();
+    }
+
+    /* ================= INIT ================= */
 
     loadVehicles();
+    loadRate();
 </script>
 
 </body>

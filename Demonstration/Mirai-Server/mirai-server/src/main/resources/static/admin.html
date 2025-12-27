@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin – Vehicle Registration</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+        body {
+            background: #111;
+            color: #eee;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .card {
+            max-width: 700px;
+            margin: auto;
+            background: #222;
+            padding: 20px;
+            border-radius: 12px;
+        }
+
+        input, button {
+            padding: 8px;
+            margin: 5px;
+            border-radius: 6px;
+            border: none;
+            font-size: 14px;
+        }
+
+        button {
+            background: #4caf50;
+            color: #fff;
+            cursor: pointer;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th, td {
+            border: 1px solid #444;
+            padding: 6px;
+        }
+
+        th {
+            background: #333;
+        }
+
+        a {
+            color: #4caf50;
+            text-decoration: none;
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="card">
+    <div style="text-align:left;">
+        <a href="/index.html">← Back to Dashboard</a>
+    </div>
+
+    <h2>🚗 Admin – Vehicle Registration</h2>
+
+    <input id="veh" placeholder="VH001">
+    <input id="name" placeholder="Owner / Description">
+    <button onclick="addVehicle()">Add / Update</button>
+
+    <hr>
+
+    <h3>Registered Vehicles</h3>
+    <div id="list">Loading...</div>
+</div>
+
+<script>
+    async function loadVehicles() {
+        const res = await fetch('/api/admin/vehicles');
+        const data = await res.json();
+
+        if (data.length === 0) {
+            document.getElementById('list').innerHTML = '<p>No vehicles registered</p>';
+            return;
+        }
+
+        let html = '<table><tr><th>Vehicle</th><th>Name</th><th>Action</th></tr>';
+
+        for (let v of data) {
+            html += `<tr>
+            <td>${v.vehicle}</td>
+            <td>${v.name}</td>
+            <td>
+                <button onclick="removeVehicle('${v.vehicle}')">Delete</button>
+            </td>
+        </tr>`;
+        }
+
+        html += '</table>';
+        document.getElementById('list').innerHTML = html;
+    }
+
+    async function addVehicle() {
+        const veh = document.getElementById('veh').value.trim();
+        const name = document.getElementById('name').value.trim();
+
+        if (!veh) return;
+
+        await fetch(`/api/admin/add?veh=${veh}&name=${name}`);
+        document.getElementById('veh').value = '';
+        document.getElementById('name').value = '';
+        loadVehicles();
+    }
+
+    async function removeVehicle(veh) {
+        await fetch(`/api/admin/remove?veh=${veh}`);
+        loadVehicles();
+    }
+
+    loadVehicles();
+</script>
+
+</body>
+</html>

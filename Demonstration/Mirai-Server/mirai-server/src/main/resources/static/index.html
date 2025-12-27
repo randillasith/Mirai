@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Mirai RFID Parking</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+        body {
+            background: #111;
+            color: #eee;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .card {
+            max-width: 900px;
+            margin: auto;
+            background: #222;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.6);
+        }
+
+        h1 { margin-bottom: 5px; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+
+        th, td {
+            border: 1px solid #444;
+            padding: 6px;
+        }
+
+        th {
+            background: #333;
+        }
+
+        .ok { color: #4caf50; }
+        .bad { color: #f44336; }
+
+        .small {
+            font-size: 12px;
+            color: #aaa;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="card">
+    <h1>🚗 Mirai RFID Parking</h1>
+    <p class="small">Spring Boot Backend + ESP32</p>
+
+    <hr>
+
+    <h3>📌 Parking Slots</h3>
+    <table>
+        <tr>
+            <th>Slot</th>
+            <th>Status</th>
+        </tr>
+        <tr>
+            <td>Slot 1</td>
+            <td id="slot1">-</td>
+        </tr>
+        <tr>
+            <td>Slot 2</td>
+            <td id="slot2">-</td>
+        </tr>
+    </table>
+
+    <hr>
+
+    <h3>🚘 Active Vehicles (Inside)</h3>
+    <div id="active">Loading...</div>
+
+    <hr>
+
+    <h3>💰 Parking Rates</h3>
+    <p class="small">
+        First 0–3s → <span id="p1">-</span><br>
+        3–5s → +<span id="p2">-</span><br>
+        After 5s → <span id="p3">-</span> per sec
+    </p>
+</div>
+
+<script>
+    async function refresh() {
+        try {
+            const res = await fetch('/api/status');
+            const data = await res.json();
+
+            // Slots
+            document.getElementById('slot1').textContent =
+                data.slot1Occ ? 'OCCUPIED' : 'FREE';
+
+            document.getElementById('slot2').textContent =
+                data.slot2Occ ? 'OCCUPIED' : 'FREE';
+
+            // Active vehicles
+            if (data.active.length === 0) {
+                document.getElementById('active').innerHTML = '<p>None</p>';
+            } else {
+                let html = '<table><tr><th>UID</th><th>Vehicle</th><th>Reader</th></tr>';
+                for (let v of data.active) {
+                    html += `<tr>
+                            <td>${v.uid}</td>
+                            <td>${v.vehicle}</td>
+                            <td>${v.reader}</td>
+                         </tr>`;
+                }
+                html += '</table>';
+                document.getElementById('active').innerHTML = html;
+            }
+
+            // Prices
+            document.getElementById('p1').textContent = data.priceFirstBlock;
+            document.getElementById('p2').textContent = data.priceSecondBlock;
+            document.getElementById('p3').textContent = data.priceLongRate;
+
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    setInterval(refresh, 1000);
+    refresh();
+</script>
+
+</body>
+</html>

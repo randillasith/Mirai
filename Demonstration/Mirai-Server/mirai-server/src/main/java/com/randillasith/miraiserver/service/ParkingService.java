@@ -1,0 +1,59 @@
+package com.randillasith.miraiserver.service;
+
+import com.randillasith.miraiserver.model.*;
+import com.randillasith.miraiserver.store.ParkingStore;
+import org.springframework.stereotype.Service;
+
+import java.time.Duration;
+import java.time.LocalDateTime;
+
+@Service
+public class ParkingService {
+
+    public String handleScan(String uid, int reader, String vehicle) {
+
+        RegVehicle rv = ParkingStore.registeredVehicles.get(vehicle.toUpperCase());
+        if (rv == null) {
+            return "DENIED|Unknown";
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+        Session existing = ParkingStore.activeSessions.get(uid);
+
+        if (existing == null) {
+            Session s = new Session();
+            s.startTime = now;
+            s.startReader = reader;
+            s.vehicle = vehicle;
+
+            ParkingStore.activeSessions.put(uid, s);
+            return "OK_IN|" + rv.name;
+        }
+
+        long sec = Duration.between(existing.startTime, now).getSeconds();
+        double cost = calculateCost(sec);
+
+        ParkingRecord r = new ParkingRecord();
+        r.uid = uid;
+        r.vehicle = existing.vehicle;
+        r.startTime = existing.startTime;
+        r.endTime = now;
+        r.startReader = existing.startReader;
+        r.endReader = reader;
+        r.durationSec = sec;
+        r.cost = cost;
+
+        ParkingStore.history.add(r);
+        ParkingStore.activeSessions.remove(uid);
+
+        return "OK_OUT|" + rv.name + "|" + cost;
+    }
+
+    private double calculateCost(long sec) {
+        if (sec <= 3) return ParkingStore.priceFirstBlock;
+        if (sec <= 5) return ParkingStore.priceFirstBlock + ParkingStore.priceSecondBlock;
+        return ParkingStore.priceFirstBlock
+                + ParkingStore.priceSecondBlock
+                + ParkingStore.priceLongRate * (sec - 5);
+    }
+}

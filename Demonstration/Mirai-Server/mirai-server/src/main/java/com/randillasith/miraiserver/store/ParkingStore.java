@@ -6,14 +6,19 @@ import java.util.*;
 
 public class ParkingStore {
 
+    // Active parking sessions
     public static final Map<String, Session> activeSessions = new HashMap<>();
+
+    // Parking history
     public static final List<ParkingRecord> history = new ArrayList<>();
+
+    // Registered vehicles
     public static final Map<String, RegVehicle> registeredVehicles = new HashMap<>();
 
+    // Slot occupancy
     public static boolean slot1Occ = false;
     public static boolean slot2Occ = false;
 
-    public static double priceFirstBlock = 5.0;
-    public static double priceSecondBlock = 10.0;
-    public static double priceLongRate = 50.0;
+    // 💰 NEW SIMPLE COST LOGIC
+    public static double ratePerSecond = 1.0; // Rs per second (changeable)
 }

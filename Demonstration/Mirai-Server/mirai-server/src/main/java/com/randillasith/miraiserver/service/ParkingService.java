@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 @Service
 public class ParkingService {
 
+    // 🔹 ENTRY / EXIT HANDLER
     public String handleScan(String uid, int reader, String vehicle) {
 
         RegVehicle rv = ParkingStore.registeredVehicles.get(vehicle.toUpperCase());
@@ -20,6 +21,7 @@ public class ParkingService {
         LocalDateTime now = LocalDateTime.now();
         Session existing = ParkingStore.activeSessions.get(uid);
 
+        // ENTRY
         if (existing == null) {
             Session s = new Session();
             s.startTime = now;
@@ -30,6 +32,7 @@ public class ParkingService {
             return "OK_IN|" + rv.name;
         }
 
+        // EXIT
         long sec = Duration.between(existing.startTime, now).getSeconds();
         double cost = calculateCost(sec);
 
@@ -49,11 +52,9 @@ public class ParkingService {
         return "OK_OUT|" + rv.name + "|" + cost;
     }
 
-    private double calculateCost(long sec) {
-        if (sec <= 3) return ParkingStore.priceFirstBlock;
-        if (sec <= 5) return ParkingStore.priceFirstBlock + ParkingStore.priceSecondBlock;
-        return ParkingStore.priceFirstBlock
-                + ParkingStore.priceSecondBlock
-                + ParkingStore.priceLongRate * (sec - 5);
+    // 💰 SIMPLE COST = time × rate
+    public double calculateCost(long seconds) {
+        if (seconds < 0) seconds = 0;
+        return seconds * ParkingStore.ratePerSecond;
     }
 }

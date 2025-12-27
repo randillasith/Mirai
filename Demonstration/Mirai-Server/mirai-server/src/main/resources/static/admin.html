@@ -77,6 +77,33 @@
     <h3>Registered Vehicles</h3>
     <div id="list">Loading...</div>
 </div>
+<hr>
+
+<h3>💰 Parking Rate (Admin)</h3>
+<p>Current Rate: Rs <span id="adminRate">-</span> per second</p>
+
+<input id="adminRateInput" type="number" step="0.1" min="0">
+<button onclick="updateRate()">Update Rate</button>
+
+<script>
+    async function loadRate() {
+        const res = await fetch('/api/status');
+        const data = await res.json();
+
+        document.getElementById('adminRate').textContent = data.ratePerSecond;
+        document.getElementById('adminRateInput').value = data.ratePerSecond;
+    }
+
+    async function updateRate() {
+        const rate = document.getElementById('adminRateInput').value;
+        await fetch(`/api/setRate?rate=${rate}`);
+        loadRate(); // refresh display
+    }
+
+    /* Load on page open */
+    loadRate();
+</script>
+
 
 <script>
     async function loadVehicles() {

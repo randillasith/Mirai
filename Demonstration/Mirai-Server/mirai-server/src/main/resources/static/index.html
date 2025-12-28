@@ -222,7 +222,7 @@
                         <p class="text-2xl font-bold text-slate-800">Rs.<span id="today-revenue">0.00</span></p>
                     </div>
                     <div class="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center">
-                        <i class="las la-rupee-sign text-amber-600 text-lg"></i>
+                        <i class="fa-solid fa-rupee-sign"></i>
                     </div>
                 </div>
             </div>
@@ -342,40 +342,7 @@
                 </div>
             </div>
 
-            <!-- Right Column -->
-            <div class="space-y-6">
-                <!-- Rate Management -->
-                <div class="bg-white rounded-xl p-6 card-shadow">
-                    <div class="flex items-center gap-3 mb-6">
-                        <div class="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center">
-                            <i class="las la-money-bill-wave text-amber-600 text-xl"></i>
-                        </div>
-                        <h2 class="text-xl font-semibold text-slate-800">Parking Rate</h2>
-                    </div>
-
-                    <div class="text-center mb-6">
-                        <div class="text-3xl font-bold text-slate-800 mb-1">Rs.<span id="current-rate">0.01</span></div>
-                        <p class="text-slate-500">per second</p>
-                    </div>
-
-                    <div class="space-y-4">
-                        <div>
-                            <label class="block text-sm font-medium text-slate-700 mb-2">Update Rate (Rs. per second)</label>
-                            <div class="flex gap-2">
-                                <input type="number" id="rate-input" step="0.01" min="0.01" value="0.01"
-                                       class="flex-1 border border-slate-300 rounded-lg px-4 py-3 text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                                <button onclick="updateRate()"
-                                        class="btn-primary px-4 py-3 rounded-lg font-medium">
-                                    Update
-                                </button>
-                            </div>
-                        </div>
-                        <p class="text-sm text-slate-500">
-                            <i class="las la-info-circle"></i> Rate applies to all vehicles in real-time
-                        </p>
-                    </div>
-                </div>
-
+                       
                 <!-- Quick Stats -->
                 <div class="bg-white rounded-xl p-6 card-shadow">
                     <div class="flex items-center gap-3 mb-6">
@@ -418,35 +385,7 @@
                     </div>
                 </div>
 
-                <!-- System Status -->
-                <div class="bg-white rounded-xl p-6 card-shadow">
-                    <h3 class="text-lg font-semibold text-slate-800 mb-4">System Status</h3>
-                    <div class="space-y-3">
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center gap-2">
-                                <div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-                                <span class="text-slate-600">RFID Reader</span>
-                            </div>
-                            <span class="px-2 py-1 bg-emerald-100 text-emerald-700 text-xs rounded-full">Online</span>
-                        </div>
-
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center gap-2">
-                                <div class="w-2 h-2 rounded-full bg-emerald-500"></div>
-                                <span class="text-slate-600">Database</span>
-                            </div>
-                            <span class="px-2 py-1 bg-emerald-100 text-emerald-700 text-xs rounded-full">Connected</span>
-                        </div>
-
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center gap-2">
-                                <div class="w-2 h-2 rounded-full bg-emerald-500"></div>
-                                <span class="text-slate-600">API Server</span>
-                            </div>
-                            <span class="px-2 py-1 bg-emerald-100 text-emerald-700 text-xs rounded-full">Running</span>
-                        </div>
-                    </div>
-                </div>
+           
             </div>
         </div>
     </main>

@@ -1,6 +1,7 @@
 package com.randillasith.miraiserver.controller;
 
 import com.randillasith.miraiserver.service.ParkingService;
+import com.randillasith.miraiserver.store.ParkingStore;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -30,4 +31,5 @@ public class ScanController {
     ) {
         return parkingService.handleScan(uid, reader, text);
     }
+    
 }

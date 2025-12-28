@@ -2,6 +2,7 @@ package com.randillasith.miraiserver.controller;
 
 import com.randillasith.miraiserver.model.VehicleEntity;
 import com.randillasith.miraiserver.service.VehicleService;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -11,6 +12,7 @@ import java.util.List;
 public class AdminController {
 
     private final VehicleService vehicleService;
+
 
     public AdminController(VehicleService vehicleService) {
         this.vehicleService = vehicleService;
@@ -38,4 +40,11 @@ public class AdminController {
         vehicleService.delete(vehicle.toUpperCase());
         return "OK";
     }
+    private void check(HttpSession session) {
+        Boolean ok = (Boolean) session.getAttribute("ADMIN");
+        if (ok == null || !ok) {
+            throw new RuntimeException("Unauthorized");
+        }
+    }
+
 }

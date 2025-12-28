@@ -15,6 +15,9 @@ public class ParkingService {
     private final VehicleService vehicleService;
     private final ParkingHistoryRepository historyRepository;
 
+    // 🔢 total parking slots
+    private static final int TOTAL_SLOTS = 2;
+
     public ParkingService(
             VehicleService vehicleService,
             ParkingHistoryRepository historyRepository
@@ -26,7 +29,7 @@ public class ParkingService {
     /**
      * Handles RFID scan (ENTRY or EXIT)
      */
-    public String handleScan(String uid, int reader, String vehicle) {
+    public synchronized String handleScan(String uid, int reader, String vehicle) {
 
         vehicle = vehicle.toUpperCase();
         LocalDateTime now = LocalDateTime.now();
@@ -36,11 +39,16 @@ public class ParkingService {
             return "DENIED|Unknown Vehicle";
         }
 
-        // Check if this UID is already inside
+        // Check if UID already inside (EXIT case)
         Session existing = ParkingStore.activeSessions.get(uid);
 
         /* ================= ENTRY ================= */
         if (existing == null) {
+
+            // 🚫 Parking FULL → block ENTRY only
+            if (ParkingStore.activeSessions.size() >= TOTAL_SLOTS) {
+                return "FULL|Parking Full";
+            }
 
             Session s = new Session();
             s.uid = uid;
@@ -50,8 +58,8 @@ public class ParkingService {
 
             ParkingStore.activeSessions.put(uid, s);
 
-            // Update slot status (simple logic)
-            ParkingStore.slot1Occ = true;
+            // Update slot flags safely
+            updateSlots();
 
             return "OK_IN|" + vehicleService.getOwner(vehicle);
         }
@@ -75,12 +83,21 @@ public class ParkingService {
 
         historyRepository.save(h);
 
-        // Remove from active sessions
+        // Remove active session
         ParkingStore.activeSessions.remove(uid);
 
-        // Update slot status
-        ParkingStore.slot1Occ = false;
+        // Update slot flags safely
+        updateSlots();
 
-        return "OK_OUT|Rs " + cost;
+        return "OK_OUT|Rs " + String.format("%.2f", cost);
+    }
+
+    /**
+     * Updates slot occupancy based on active sessions count
+     */
+    private void updateSlots() {
+        int count = ParkingStore.activeSessions.size();
+        ParkingStore.slot1Occ = count >= 1;
+        ParkingStore.slot2Occ = count >= 2;
     }
 }

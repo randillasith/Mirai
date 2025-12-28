@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Parking Reports</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+        body {
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            color: #eee;
+            font-family: "Segoe UI", Arial, sans-serif;
+            margin: 0;
+            padding: 30px;
+        }
+
+        a {
+            color: #4cafef;
+            text-decoration: none;
+        }
+
+        h1 {
+            margin-bottom: 5px;
+        }
+
+        .sub {
+            color: #aaa;
+            font-size: 14px;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: auto;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background: rgba(0,0,0,0.35);
+            backdrop-filter: blur(6px);
+            border-radius: 14px;
+            padding: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+            transition: transform 0.2s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .veh {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .row {
+            font-size: 14px;
+            margin: 4px 0;
+            color: #ccc;
+        }
+
+        .value {
+            font-weight: bold;
+            color: #fff;
+        }
+
+        .btn {
+            display: inline-block;
+            margin-top: 12px;
+            padding: 8px 14px;
+            background: #4caf50;
+            color: #fff;
+            border-radius: 8px;
+            font-size: 13px;
+        }
+
+        .btn:hover {
+            background: #43a047;
+        }
+
+        .empty {
+            text-align: center;
+            color: #ccc;
+            margin-top: 60px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="topbar">
+        <div>
+            <h1>📊 Parking Reports</h1>
+            <div class="sub">Vehicle-wise usage & cost summary</div>
+        </div>
+        <a href="/">← Back to Dashboard</a>
+    </div>
+
+    <div id="cards" class="cards">
+        Loading reports...
+    </div>
+
+</div>
+
+<script>
+    async function loadReports() {
+        try {
+            const res = await fetch('/api/report/summary');
+            const data = await res.json();
+
+            const cards = document.getElementById('cards');
+
+            if (!data || data.length === 0) {
+                cards.innerHTML =
+                    '<div class="empty">No parking records available</div>';
+                return;
+            }
+
+            let html = '';
+
+            for (let r of data) {
+                html += `
+                <div class="card">
+                    <div class="veh">🚗 ${r.vehicle}</div>
+
+                    <div class="row">
+                        Entries:
+                        <span class="value">${r.entries}</span>
+                    </div>
+
+                    <div class="row">
+                        Total Time:
+                        <span class="value">${r.totalTime}s</span>
+                    </div>
+
+                    <div class="row">
+                        Total Cost:
+                        <span class="value">Rs ${r.totalCost.toFixed(2)}</span>
+                    </div>
+
+                    <a class="btn" href="report-detail.html?vehicle=${r.vehicle}">
+                        View Details →
+                    </a>
+                </div>`;
+            }
+
+            cards.innerHTML = html;
+
+        } catch (e) {
+            document.getElementById('cards').innerHTML =
+                '<div class="empty">Failed to load data</div>';
+            console.error(e);
+        }
+    }
+
+    loadReports();
+</script>
+
+</body>
+</html>

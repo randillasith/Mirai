@@ -69,10 +69,43 @@
             color: #fff;
             cursor: pointer;
         }
+        .nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 24px;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(6px);
+            border-radius: 12px;
+            margin-bottom: 25px;
+        }
+
+        .nav a {
+            margin-left: 18px;
+            color: #4cafef;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .nav a:hover {
+            text-decoration: underline;
+        }
+
     </style>
 </head>
 
 <body>
+<nav class="nav">
+    <div class="nav-left">
+        🚗 <b>Mirai RFID Parking</b>
+    </div>
+    <div class="nav-right">
+        <a href="/">Dashboard</a>
+        <a href="/admin.html">Admin</a>
+        <a href="/report.html">Reports</a>
+    </div>
+</nav>
+
 
 <div class="card">
     <h1>🚗 Mirai RFID Parking</h1>

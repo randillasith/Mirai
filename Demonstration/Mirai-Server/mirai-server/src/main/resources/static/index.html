@@ -215,7 +215,7 @@
                 </div>
             </div>
 
-            <div class="stat-card rounded-xl p-4 card-shadow">
+            <!-- <div class="stat-card rounded-xl p-4 card-shadow">
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-sm text-slate-600">Today's Revenue</p>
@@ -225,7 +225,7 @@
                         <i class="fa-solid fa-rupee-sign"></i>
                     </div>
                 </div>
-            </div>
+            </div> -->
 
             <div class="stat-card rounded-xl p-4 card-shadow">
                 <div class="flex items-center justify-between">
@@ -344,46 +344,7 @@
 
                        
                 <!-- Quick Stats -->
-                <div class="bg-white rounded-xl p-6 card-shadow">
-                    <div class="flex items-center gap-3 mb-6">
-                        <div class="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center">
-                            <i class="las la-chart-line text-green-600 text-xl"></i>
-                        </div>
-                        <h2 class="text-xl font-semibold text-slate-800">Today's Overview</h2>
-                    </div>
-
-                    <div class="space-y-4">
-                        <div class="flex justify-between items-center">
-                            <div class="flex items-center gap-3">
-                                <div class="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
-                                    <i class="las la-car text-blue-600"></i>
-                                </div>
-                                <span class="text-slate-600">Total Vehicles</span>
-                            </div>
-                            <span class="font-semibold text-slate-800" id="total-vehicles-today">0</span>
-                        </div>
-
-                        <div class="flex justify-between items-center">
-                            <div class="flex items-center gap-3">
-                                <div class="w-8 h-8 rounded-lg bg-green-50 flex items-center justify-center">
-                                    <i class="las la-clock text-green-600"></i>
-                                </div>
-                                <span class="text-slate-600">Avg. Duration</span>
-                            </div>
-                            <span class="font-semibold text-slate-800" id="avg-duration">0s</span>
-                        </div>
-
-                        <div class="flex justify-between items-center">
-                            <div class="flex items-center gap-3">
-                                <div class="w-8 h-8 rounded-lg bg-purple-50 flex items-center justify-center">
-                                    <i class="las la-rupee-sign text-purple-600"></i>
-                                </div>
-                                <span class="text-slate-600">Avg. Cost</span>
-                            </div>
-                            <span class="font-semibold text-slate-800">Rs.<span id="avg-cost">0.00</span></span>
-                        </div>
-                    </div>
-                </div>
+                
 
            
             </div>
@@ -432,6 +393,56 @@
             </div>
         </div>
     </nav>
+    <br>
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <div class="stat-card rounded-xl p-4 card-shadow">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-slate-600">Total Slots</p>
+                        <p class="text-2xl font-bold text-slate-800">2</p>
+                    </div>
+                    <div class="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
+                        <i class="las la-parking text-blue-600 text-lg"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stat-card rounded-xl p-4 card-shadow">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-slate-600">Available</p>
+                        <p class="text-2xl font-bold text-emerald-600" id="available-slots">2</p>
+                    </div>
+                    <div class="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center">
+                        <i class="las la-check-circle text-emerald-600 text-lg"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stat-card rounded-xl p-4 card-shadow">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-slate-600">Today's Revenue</p>
+                        <p class="text-2xl font-bold text-slate-800">Rs.<span id="today-revenue">0.00</span></p>
+                    </div>
+                    <div class="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center">
+                        <i class="fa-solid fa-rupee-sign"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stat-card rounded-xl p-4 card-shadow">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-slate-600">Active Now</p>
+                        <p class="text-2xl font-bold text-slate-800"><span id="active-now">0</span></p>
+                    </div>
+                    <div class="w-10 h-10 rounded-lg bg-violet-100 flex items-center justify-center">
+                        <i class="las la-car text-violet-600 text-lg"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
 
     <!-- Main Content -->
     <main class="container mx-auto px-4 py-6">
@@ -556,23 +567,47 @@
                     </div>
                 </div>
 
-                <!-- Quick Actions -->
                 <div class="bg-white rounded-xl p-6 card-shadow">
-                    <h3 class="text-lg font-semibold text-slate-800 mb-4">Quick Actions</h3>
-                    <div class="space-y-3">
-                        <button onclick="exportVehicleData()"
-                                class="w-full border border-slate-300 text-slate-700 py-3 rounded-lg font-medium hover:bg-slate-50 transition-colors flex items-center justify-center gap-2">
-                            <i class="las la-download"></i>
-                            Export Data
-                        </button>
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center">
+                            <i class="las la-chart-line text-green-600 text-xl"></i>
+                        </div>
+                        <h2 class="text-xl font-semibold text-slate-800">Today's Overview</h2>
+                    </div>
 
-                        <button onclick="showToast('Data refreshed successfully!', 'success')"
-                                class="w-full border border-slate-300 text-slate-700 py-3 rounded-lg font-medium hover:bg-slate-50 transition-colors flex items-center justify-center gap-2">
-                            <i class="las la-sync-alt"></i>
-                            Refresh Data
-                        </button>
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
+                                    <i class="las la-car text-blue-600"></i>
+                                </div>
+                                <span class="text-slate-600">Total Vehicles</span>
+                            </div>
+                            <span class="font-semibold text-slate-800" id="total-vehicles-today">0</span>
+                        </div>
+
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-lg bg-green-50 flex items-center justify-center">
+                                    <i class="las la-clock text-green-600"></i>
+                                </div>
+                                <span class="text-slate-600">Avg. Duration</span>
+                            </div>
+                            <span class="font-semibold text-slate-800" id="avg-duration">0s</span>
+                        </div>
+
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-lg bg-purple-50 flex items-center justify-center">
+                                    <i class="fa-light fa-circle-rupee text-purple-600"></i>
+                                </div>
+                                <span class="text-slate-600">Avg. Cost</span>
+                            </div>
+                            <span class="font-semibold text-slate-800">Rs.<span id="avg-cost">0.00</span></span>
+                        </div>
                     </div>
                 </div>
+                
             </div>
         </div>
     </main>
@@ -778,11 +813,6 @@
             // Update slot status
             updateSlotStatus(1, data.slot1Occ);
             updateSlotStatus(2, data.slot2Occ);
-
-            // Update rate display
-            document.getElementById('current-rate').textContent = data.ratePerSecond;
-            document.getElementById('rate-display').textContent = data.ratePerSecond;
-            document.getElementById('rate-input').value = data.ratePerSecond;
 
             // Update active vehicles
             updateActiveVehicles(data.active);

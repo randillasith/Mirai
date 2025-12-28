@@ -2,216 +2,1266 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Mirai RFID Parking</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mirai RFID Parking System</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Line Awesome Icons -->
+    <link rel="stylesheet" href="https://maxst.icons8.com/vue-static/landings/line-awesome/line-awesome/1.3.0/css/line-awesome.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-light: #6366f1;
+            --secondary: #0ea5e9;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --light-bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+        }
+
         body {
-            background: #111;
-            color: #eee;
-            font-family: Arial, sans-serif;
-            text-align: center;
-            padding: 20px;
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
         }
 
-        .card {
-            max-width: 900px;
-            margin: auto;
-            background: #222;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.6);
+        .header-gradient {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
         }
 
-        h1 { margin-bottom: 5px; }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-            font-size: 14px;
+        .card-shadow {
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
         }
 
-        th, td {
-            border: 1px solid #444;
-            padding: 6px;
+        .stat-card {
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
         }
 
-        th {
-            background: #333;
+        .slot-card {
+            transition: all 0.3s ease;
         }
 
-        .ok {
-            color: #4caf50;
-            font-weight: bold;
+        .slot-card:hover {
+            transform: translateY(-2px);
         }
 
-        .bad {
-            color: #f44336;
-            font-weight: bold;
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
         }
 
-        .small {
-            font-size: 12px;
-            color: #aaa;
+        .status-free {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
         }
 
-        input, button {
-            padding: 6px 10px;
-            margin: 5px;
-            border-radius: 6px;
-            border: none;
-            font-size: 14px;
+        .status-occupied {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
         }
 
-        button {
-            background: #4caf50;
-            color: #fff;
-            cursor: pointer;
-        }
-        .nav {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 14px 24px;
-            background: rgba(0,0,0,0.5);
-            backdrop-filter: blur(6px);
-            border-radius: 12px;
-            margin-bottom: 25px;
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+            transition: all 0.3s ease;
         }
 
-        .nav a {
-            margin-left: 18px;
-            color: #4cafef;
-            text-decoration: none;
-            font-size: 14px;
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
         }
 
-        .nav a:hover {
-            text-decoration: underline;
+        .nav-link {
+            color: var(--text-secondary);
+            transition: all 0.3s ease;
         }
 
+        .nav-link:hover {
+            color: var(--primary);
+        }
+
+        .nav-link.active {
+            color: var(--primary);
+            background: rgba(79, 70, 229, 0.1);
+        }
+
+        .table-row:hover {
+            background: #f8fafc;
+        }
+
+        .animate-pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+        }
     </style>
 </head>
+<body class="min-h-screen">
+<!-- Main Dashboard -->
+<div id="dashboard-page" class="min-h-screen">
+    <!-- Header -->
+    <header class="header-gradient text-white">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center">
+                        <i class="las la-parking text-2xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl font-bold">Mirai RFID Parking</h1>
+                        <p class="text-white/80 text-sm">Smart Parking Management System</p>
+                    </div>
+                </div>
 
-<body>
-<nav class="nav">
-    <div class="nav-left">
-        🚗 <b>Mirai RFID Parking</b>
+                <div class="flex items-center gap-6">
+                    <div class="hidden md:flex items-center gap-4">
+                        <div class="text-right">
+                            <p class="text-sm text-white/80">Current Rate</p>
+                            <p class="font-semibold text-lg">₹<span id="rate-display">0.01</span>/sec</p>
+                        </div>
+                        <div class="h-8 w-px bg-white/30"></div>
+                        <div class="text-right">
+                            <p class="text-sm text-white/80">Active Vehicles</p>
+                            <p class="font-semibold text-lg"><span id="active-count-display">0</span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navigation -->
+    <nav class="glass-effect border-b">
+        <div class="container mx-auto px-4">
+            <div class="flex space-x-1 py-2">
+                <a href="#" onclick="showPage('dashboard')"
+                   class="nav-link active px-4 py-3 rounded-lg flex items-center gap-2 font-medium">
+                    <i class="las la-tachometer-alt"></i>
+                    Dashboard
+                </a>
+                <a href="#" onclick="showPage('admin')"
+                   class="nav-link px-4 py-3 rounded-lg flex items-center gap-2 font-medium">
+                    <i class="las la-cog"></i>
+                    Admin Panel
+                </a>
+                <a href="#" onclick="showPage('reports')"
+                   class="nav-link px-4 py-3 rounded-lg flex items-center gap-2 font-medium">
+                    <i class="las la-chart-bar"></i>
+                    Reports
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-6">
+        <!-- Stats Overview -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <div class="stat-card rounded-xl p-4 card-shadow">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-slate-600">Total Slots</p>
+                        <p class="text-2xl font-bold text-slate-800">2</p>
+                    </div>
+                    <div class="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
+                        <i class="las la-parking text-blue-600 text-lg"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stat-card rounded-xl p-4 card-shadow">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-slate-600">Available</p>
+                        <p class="text-2xl font-bold text-emerald-600" id="available-slots">2</p>
+                    </div>
+                    <div class="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center">
+                        <i class="las la-check-circle text-emerald-600 text-lg"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stat-card rounded-xl p-4 card-shadow">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-slate-600">Today's Revenue</p>
+                        <p class="text-2xl font-bold text-slate-800">₹<span id="today-revenue">0.00</span></p>
+                    </div>
+                    <div class="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center">
+                        <i class="las la-rupee-sign text-amber-600 text-lg"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stat-card rounded-xl p-4 card-shadow">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-slate-600">Active Now</p>
+                        <p class="text-2xl font-bold text-slate-800"><span id="active-now">0</span></p>
+                    </div>
+                    <div class="w-10 h-10 rounded-lg bg-violet-100 flex items-center justify-center">
+                        <i class="las la-car text-violet-600 text-lg"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Left Column -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- Parking Slots -->
+                <div class="bg-white rounded-xl p-6 card-shadow">
+                    <div class="flex items-center justify-between mb-6">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
+                                <i class="las la-parking text-blue-600 text-xl"></i>
+                            </div>
+                            <h2 class="text-xl font-semibold text-slate-800">Parking Slots Status</h2>
+                        </div>
+                        <div class="text-sm text-slate-500">Updated just now</div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Slot 1 -->
+                        <div id="slot1-card" class="slot-card bg-white border border-slate-200 rounded-xl p-5 hover:border-blue-300">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="flex items-center gap-3">
+                                    <div id="slot1-icon" class="w-12 h-12 rounded-lg bg-emerald-100 flex items-center justify-center">
+                                        <i class="las la-parking text-emerald-600 text-2xl"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="font-semibold text-slate-800">Slot 1</h3>
+                                        <p class="text-sm text-slate-500">Ground Floor</p>
+                                    </div>
+                                </div>
+                                <span id="slot1-status" class="status-badge status-free">FREE</span>
+                            </div>
+                            <div class="space-y-2">
+                                <div class="text-center py-2">
+                                    <p id="slot1-details" class="text-slate-600">Available for parking</p>
+                                </div>
+                                <div class="h-2 bg-slate-100 rounded-full overflow-hidden">
+                                    <div id="slot1-timer" class="h-full bg-emerald-500 w-0"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Slot 2 -->
+                        <div id="slot2-card" class="slot-card bg-white border border-slate-200 rounded-xl p-5 hover:border-blue-300">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="flex items-center gap-3">
+                                    <div id="slot2-icon" class="w-12 h-12 rounded-lg bg-emerald-100 flex items-center justify-center">
+                                        <i class="las la-parking text-emerald-600 text-2xl"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="font-semibold text-slate-800">Slot 2</h3>
+                                        <p class="text-sm text-slate-500">Ground Floor</p>
+                                    </div>
+                                </div>
+                                <span id="slot2-status" class="status-badge status-free">FREE</span>
+                            </div>
+                            <div class="space-y-2">
+                                <div class="text-center py-2">
+                                    <p id="slot2-details" class="text-slate-600">Available for parking</p>
+                                </div>
+                                <div class="h-2 bg-slate-100 rounded-full overflow-hidden">
+                                    <div id="slot2-timer" class="h-full bg-emerald-500 w-0"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Active Vehicles -->
+                <div class="bg-white rounded-xl p-6 card-shadow">
+                    <div class="flex items-center justify-between mb-6">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-lg bg-violet-100 flex items-center justify-center">
+                                <i class="las la-car text-violet-600 text-xl"></i>
+                            </div>
+                            <h2 class="text-xl font-semibold text-slate-800">Active Vehicles</h2>
+                        </div>
+                        <span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium" id="active-count">0 vehicles</span>
+                    </div>
+
+                    <div class="overflow-hidden rounded-lg border border-slate-200">
+                        <table class="min-w-full">
+                            <thead class="bg-slate-50">
+                            <tr>
+                                <th class="py-3 px-4 text-left text-sm font-medium text-slate-700">Vehicle ID</th>
+                                <th class="py-3 px-4 text-left text-sm font-medium text-slate-700">Owner</th>
+                                <th class="py-3 px-4 text-left text-sm font-medium text-slate-700">Duration</th>
+                                <th class="py-3 px-4 text-left text-sm font-medium text-slate-700">Cost</th>
+                                <th class="py-3 px-4 text-left text-sm font-medium text-slate-700">Status</th>
+                            </tr>
+                            </thead>
+                            <tbody id="active-vehicles-body" class="divide-y divide-slate-100">
+                            <tr>
+                                <td colspan="5" class="py-8 text-center text-slate-500">
+                                    <i class="las la-car text-3xl mb-3 block opacity-20"></i>
+                                    <p>No active vehicles in parking</p>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column -->
+            <div class="space-y-6">
+                <!-- Rate Management -->
+                <div class="bg-white rounded-xl p-6 card-shadow">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center">
+                            <i class="las la-money-bill-wave text-amber-600 text-xl"></i>
+                        </div>
+                        <h2 class="text-xl font-semibold text-slate-800">Parking Rate</h2>
+                    </div>
+
+                    <div class="text-center mb-6">
+                        <div class="text-3xl font-bold text-slate-800 mb-1">₹<span id="current-rate">0.01</span></div>
+                        <p class="text-slate-500">per second</p>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-2">Update Rate (₹ per second)</label>
+                            <div class="flex gap-2">
+                                <input type="number" id="rate-input" step="0.01" min="0.01" value="0.01"
+                                       class="flex-1 border border-slate-300 rounded-lg px-4 py-3 text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                <button onclick="updateRate()"
+                                        class="btn-primary px-4 py-3 rounded-lg font-medium">
+                                    Update
+                                </button>
+                            </div>
+                        </div>
+                        <p class="text-sm text-slate-500">
+                            <i class="las la-info-circle"></i> Rate applies to all vehicles in real-time
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Quick Stats -->
+                <div class="bg-white rounded-xl p-6 card-shadow">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center">
+                            <i class="las la-chart-line text-green-600 text-xl"></i>
+                        </div>
+                        <h2 class="text-xl font-semibold text-slate-800">Today's Overview</h2>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
+                                    <i class="las la-car text-blue-600"></i>
+                                </div>
+                                <span class="text-slate-600">Total Vehicles</span>
+                            </div>
+                            <span class="font-semibold text-slate-800" id="total-vehicles-today">0</span>
+                        </div>
+
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-lg bg-green-50 flex items-center justify-center">
+                                    <i class="las la-clock text-green-600"></i>
+                                </div>
+                                <span class="text-slate-600">Avg. Duration</span>
+                            </div>
+                            <span class="font-semibold text-slate-800" id="avg-duration">0s</span>
+                        </div>
+
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-lg bg-purple-50 flex items-center justify-center">
+                                    <i class="las la-rupee-sign text-purple-600"></i>
+                                </div>
+                                <span class="text-slate-600">Avg. Cost</span>
+                            </div>
+                            <span class="font-semibold text-slate-800">₹<span id="avg-cost">0.00</span></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- System Status -->
+                <div class="bg-white rounded-xl p-6 card-shadow">
+                    <h3 class="text-lg font-semibold text-slate-800 mb-4">System Status</h3>
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+                                <span class="text-slate-600">RFID Reader</span>
+                            </div>
+                            <span class="px-2 py-1 bg-emerald-100 text-emerald-700 text-xs rounded-full">Online</span>
+                        </div>
+
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <div class="w-2 h-2 rounded-full bg-emerald-500"></div>
+                                <span class="text-slate-600">Database</span>
+                            </div>
+                            <span class="px-2 py-1 bg-emerald-100 text-emerald-700 text-xs rounded-full">Connected</span>
+                        </div>
+
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <div class="w-2 h-2 rounded-full bg-emerald-500"></div>
+                                <span class="text-slate-600">API Server</span>
+                            </div>
+                            <span class="px-2 py-1 bg-emerald-100 text-emerald-700 text-xs rounded-full">Running</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- Admin Panel -->
+<div id="admin-page" class="min-h-screen hidden">
+    <!-- Header -->
+    <header class="bg-white border-b">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-xl bg-indigo-100 flex items-center justify-center">
+                        <i class="las la-cog text-indigo-600 text-2xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl font-bold text-slate-800">Vehicle Management</h1>
+                        <p class="text-slate-500 text-sm">Register and manage vehicle information</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navigation -->
+    <nav class="bg-slate-50 border-b">
+        <div class="container mx-auto px-4">
+            <div class="flex space-x-1 py-2">
+                <a href="#" onclick="showPage('dashboard')"
+                   class="px-4 py-3 rounded-lg flex items-center gap-2 font-medium text-slate-600 hover:text-indigo-600">
+                    <i class="las la-arrow-left"></i>
+                    Back to Dashboard
+                </a>
+                <a href="#" onclick="showPage('admin')"
+                   class="px-4 py-3 rounded-lg flex items-center gap-2 font-medium bg-indigo-100 text-indigo-600">
+                    <i class="las la-car"></i>
+                    Vehicle Management
+                </a>
+                <a href="#" onclick="showPage('reports')"
+                   class="px-4 py-3 rounded-lg flex items-center gap-2 font-medium text-slate-600 hover:text-indigo-600">
+                    <i class="las la-chart-bar"></i>
+                    Reports
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-6">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Left Column -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- Vehicle Registration -->
+                <div class="bg-white rounded-xl p-6 card-shadow">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-10 h-10 rounded-lg bg-indigo-100 flex items-center justify-center">
+                            <i class="las la-plus-circle text-indigo-600 text-xl"></i>
+                        </div>
+                        <h2 class="text-xl font-semibold text-slate-800">Register New Vehicle</h2>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-2">Vehicle ID</label>
+                                <input type="text" id="veh-id" placeholder="VH001" maxlength="10"
+                                       class="w-full border border-slate-300 rounded-lg px-4 py-3 text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-2">Owner Name</label>
+                                <input type="text" id="owner-name" placeholder="John Doe"
+                                       class="w-full border border-slate-300 rounded-lg px-4 py-3 text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-2">Vehicle Type</label>
+                            <select id="vehicle-type" class="w-full border border-slate-300 rounded-lg px-4 py-3 text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                                <option value="car">Car</option>
+                                <option value="bike">Motorcycle</option>
+                                <option value="truck">Truck</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+
+                        <button onclick="addVehicle()"
+                                class="w-full btn-primary py-3 rounded-lg font-medium flex items-center justify-center gap-2">
+                            <i class="las la-save"></i>
+                            Add / Update Vehicle
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Registered Vehicles -->
+                <div class="bg-white rounded-xl p-6 card-shadow">
+                    <div class="flex items-center justify-between mb-6">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center">
+                                <i class="las la-list-alt text-green-600 text-xl"></i>
+                            </div>
+                            <h2 class="text-xl font-semibold text-slate-800">Registered Vehicles</h2>
+                        </div>
+                        <span class="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-sm font-medium" id="registered-count">0 vehicles</span>
+                    </div>
+
+                    <div class="overflow-hidden rounded-lg border border-slate-200">
+                        <table class="min-w-full">
+                            <thead class="bg-slate-50">
+                            <tr>
+                                <th class="py-3 px-4 text-left text-sm font-medium text-slate-700">Vehicle ID</th>
+                                <th class="py-3 px-4 text-left text-sm font-medium text-slate-700">Owner</th>
+                                <th class="py-3 px-4 text-left text-sm font-medium text-slate-700">Type</th>
+                                <th class="py-3 px-4 text-left text-sm font-medium text-slate-700">Status</th>
+                                <th class="py-3 px-4 text-left text-sm font-medium text-slate-700">Actions</th>
+                            </tr>
+                            </thead>
+                            <tbody id="vehicles-body" class="divide-y divide-slate-100">
+                            <tr>
+                                <td colspan="5" class="py-8 text-center">
+                                    <div class="flex flex-col items-center">
+                                        <div class="w-16 h-16 border-2 border-dashed border-slate-300 rounded-full flex items-center justify-center mb-3">
+                                            <i class="las la-car text-slate-400 text-2xl"></i>
+                                        </div>
+                                        <p class="text-slate-500">Loading vehicles...</p>
+                                    </div>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column -->
+            <div class="space-y-6">
+                <!-- System Settings -->
+                <div class="bg-white rounded-xl p-6 card-shadow">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center">
+                            <i class="las la-sliders-h text-amber-600 text-xl"></i>
+                        </div>
+                        <h2 class="text-xl font-semibold text-slate-800">System Settings</h2>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-2">Parking Rate (₹ per second)</label>
+                            <input type="number" id="admin-rate-input" step="0.01" min="0.01" value="0.01"
+                                   class="w-full border border-slate-300 rounded-lg px-4 py-3 text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                        </div>
+
+                        <button onclick="updateAdminRate()"
+                                class="w-full btn-primary py-3 rounded-lg font-medium flex items-center justify-center gap-2">
+                            <i class="las la-sync"></i>
+                            Update Rate
+                        </button>
+
+                        <div class="pt-4 border-t border-slate-200">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-slate-700">Max Parking Duration</span>
+                                <span class="font-semibold">24 hours</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-slate-700">Auto Cleanup</span>
+                                <span class="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">Enabled</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="bg-white rounded-xl p-6 card-shadow">
+                    <h3 class="text-lg font-semibold text-slate-800 mb-4">Quick Actions</h3>
+                    <div class="space-y-3">
+                        <button onclick="exportVehicleData()"
+                                class="w-full border border-slate-300 text-slate-700 py-3 rounded-lg font-medium hover:bg-slate-50 transition-colors flex items-center justify-center gap-2">
+                            <i class="las la-download"></i>
+                            Export Data
+                        </button>
+
+                        <button onclick="showToast('Data refreshed successfully!', 'success')"
+                                class="w-full border border-slate-300 text-slate-700 py-3 rounded-lg font-medium hover:bg-slate-50 transition-colors flex items-center justify-center gap-2">
+                            <i class="las la-sync-alt"></i>
+                            Refresh Data
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- Reports Page -->
+<div id="reports-page" class="min-h-screen hidden">
+    <!-- Header -->
+    <header class="bg-white border-b">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center">
+                        <i class="las la-chart-bar text-green-600 text-2xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl font-bold text-slate-800">Parking Analytics</h1>
+                        <p class="text-slate-500 text-sm">Detailed reports and insights</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navigation -->
+    <nav class="bg-slate-50 border-b">
+        <div class="container mx-auto px-4">
+            <div class="flex space-x-1 py-2">
+                <a href="#" onclick="showPage('dashboard')"
+                   class="px-4 py-3 rounded-lg flex items-center gap-2 font-medium text-slate-600 hover:text-green-600">
+                    <i class="las la-arrow-left"></i>
+                    Back to Dashboard
+                </a>
+                <a href="#" onclick="showPage('admin')"
+                   class="px-4 py-3 rounded-lg flex items-center gap-2 font-medium text-slate-600 hover:text-green-600">
+                    <i class="las la-car"></i>
+                    Vehicle Management
+                </a>
+                <a href="#" onclick="showPage('reports')"
+                   class="px-4 py-3 rounded-lg flex items-center gap-2 font-medium bg-green-100 text-green-600">
+                    <i class="las la-chart-pie"></i>
+                    Reports
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-6">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Left Column -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- Summary Reports -->
+                <div class="bg-white rounded-xl p-6 card-shadow">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center">
+                            <i class="las la-chart-pie text-green-600 text-xl"></i>
+                        </div>
+                        <h2 class="text-xl font-semibold text-slate-800">Vehicle Summary</h2>
+                    </div>
+
+                    <div id="reports-content" class="min-h-[300px] flex items-center justify-center">
+                        <div class="text-center">
+                            <div class="w-16 h-16 border-2 border-dashed border-slate-300 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <i class="las la-chart-bar text-slate-400 text-2xl"></i>
+                            </div>
+                            <p class="text-slate-500">Loading reports...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column -->
+            <div class="space-y-6">
+                <!-- Filters -->
+                <div class="bg-white rounded-xl p-6 card-shadow">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
+                            <i class="las la-filter text-blue-600 text-xl"></i>
+                        </div>
+                        <h2 class="text-xl font-semibold text-slate-800">Filters</h2>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-2">Date Range</label>
+                            <select id="date-range"
+                                    class="w-full border border-slate-300 rounded-lg px-4 py-3 text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                <option value="today">Today</option>
+                                <option value="week">This Week</option>
+                                <option value="month">This Month</option>
+                                <option value="all">All Time</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-2">Vehicle Type</label>
+                            <select id="vehicle-type-filter"
+                                    class="w-full border border-slate-300 rounded-lg px-4 py-3 text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                <option value="all">All Vehicles</option>
+                                <option value="registered">Registered Only</option>
+                                <option value="visitor">Visitors Only</option>
+                            </select>
+                        </div>
+
+                        <button onclick="applyFilters()"
+                                class="w-full btn-primary py-3 rounded-lg font-medium flex items-center justify-center gap-2">
+                            <i class="las la-filter"></i>
+                            Apply Filters
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Export Options -->
+                <div class="bg-white rounded-xl p-6 card-shadow">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center">
+                            <i class="las la-file-export text-purple-600 text-xl"></i>
+                        </div>
+                        <h2 class="text-xl font-semibold text-slate-800">Export Data</h2>
+                    </div>
+
+                    <div class="space-y-3">
+                        <button onclick="exportCSV()"
+                                class="w-full border border-emerald-300 text-emerald-700 py-3 rounded-lg font-medium hover:bg-emerald-50 transition-colors flex items-center justify-center gap-2">
+                            <i class="las la-file-csv"></i>
+                            Export as CSV
+                        </button>
+
+                        <button onclick="exportPDF()"
+                                class="w-full border border-red-300 text-red-700 py-3 rounded-lg font-medium hover:bg-red-50 transition-colors flex items-center justify-center gap-2">
+                            <i class="las la-file-pdf"></i>
+                            Export as PDF
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- Toast Notification -->
+<div id="toast" class="fixed top-4 right-4 z-50 hidden">
+    <div class="bg-white rounded-lg shadow-lg p-4 min-w-[300px] border-l-4 animate-slideIn">
+        <div class="flex items-center gap-3">
+            <i id="toast-icon" class="text-xl"></i>
+            <div class="flex-1">
+                <p id="toast-message" class="text-sm font-medium"></p>
+            </div>
+            <button onclick="hideToast()" class="text-slate-400 hover:text-slate-600">
+                <i class="las la-times"></i>
+            </button>
+        </div>
     </div>
-    <div class="nav-right">
-        <a href="/">Dashboard</a>
-        <a href="/admin.html">Admin</a>
-        <a href="/report.html">Reports</a>
-    </div>
-</nav>
-
-
-<div class="card">
-    <h1>🚗 Mirai RFID Parking</h1>
-    <p class="small">Spring Boot Backend + ESP32</p>
-
-    <hr>
-
-    <!-- ================= PARKING SLOTS ================= -->
-    <h3>📌 Parking Slots</h3>
-    <table>
-        <tr>
-            <th>Slot</th>
-            <th>Status</th>
-        </tr>
-        <tr>
-            <td>Slot 1</td>
-            <td id="slot1">-</td>
-        </tr>
-        <tr>
-            <td>Slot 2</td>
-            <td id="slot2">-</td>
-        </tr>
-    </table>
-
-    <hr>
-
-    <!-- ================= ACTIVE VEHICLES ================= -->
-    <h3>🚘 Active Vehicles (Inside)</h3>
-    <div id="active">Loading...</div>
-
-    <hr>
-
-    <!-- ================= RATE ================= -->
-    <h3>💰 Rate</h3>
-    <p>Rs <span id="rate">-</span> per second</p>
-<!--    <input id="rateInput" type="number" step="0.1">-->
-<!--    <button onclick="setRate()">Update Rate</button>-->
 </div>
 
 <script>
-    let firstLoad = true;   // 🔹 prevents input overwrite while typing
+    // Page Navigation
+    function showPage(page) {
+        const pages = ['dashboard', 'admin', 'reports'];
+        pages.forEach(p => {
+            document.getElementById(`${p}-page`).classList.add('hidden');
+        });
+        document.getElementById(`${page}-page`).classList.remove('hidden');
 
-    async function refresh() {
+        // Update active nav state
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.classList.remove('active');
+        });
+
+        if (page === 'dashboard') {
+            refreshDashboard();
+        } else if (page === 'admin') {
+            loadVehicles();
+            loadAdminRate();
+        } else if (page === 'reports') {
+            loadReports();
+        }
+    }
+
+    // Dashboard Functions
+    async function refreshDashboard() {
         try {
             const res = await fetch('/api/status');
             const data = await res.json();
 
-            /* ===== SLOT STATUS ===== */
-            const slot1 = document.getElementById('slot1');
-            const slot2 = document.getElementById('slot2');
+            // Update slot status
+            updateSlotStatus(1, data.slot1Occ);
+            updateSlotStatus(2, data.slot2Occ);
 
-            slot1.textContent = data.slot1Occ ? 'OCCUPIED' : 'FREE';
-            slot1.className   = data.slot1Occ ? 'bad' : 'ok';
+            // Update rate display
+            document.getElementById('current-rate').textContent = data.ratePerSecond;
+            document.getElementById('rate-display').textContent = data.ratePerSecond;
+            document.getElementById('rate-input').value = data.ratePerSecond;
 
-            slot2.textContent = data.slot2Occ ? 'OCCUPIED' : 'FREE';
-            slot2.className   = data.slot2Occ ? 'bad' : 'ok';
+            // Update active vehicles
+            updateActiveVehicles(data.active);
 
-            /* ===== RATE (FIXED) ===== */
-            document.getElementById('rate').textContent = data.ratePerSecond;
+            // Update stats
+            updateStats();
 
-            firstLoad = false;
-
-            /* ===== ACTIVE VEHICLES ===== */
-            const activeDiv = document.getElementById('active');
-
-            if (data.active.length === 0) {
-                activeDiv.innerHTML = '<p>None</p>';
-                return;
-            }
-
-            let html = `
-            <table>
-                <tr>
-                    <th>UID</th>
-                    <th>Vehicle</th>
-                    <th>Time (s)</th>
-                    <th>Cost (Rs)</th>
-                </tr>`;
-
-            for (let v of data.active) {
-                html += `
-                <tr>
-                    <td>${v.uid}</td>
-                    <td>${v.vehicle}</td>
-                    <td>${v.duration}</td>
-                    <td><b>${v.cost}</b></td>
-                </tr>`;
-            }
-
-            html += '</table>';
-            activeDiv.innerHTML = html;
-
-        } catch (e) {
-            console.error("Refresh error:", e);
+        } catch (error) {
+            console.error('Dashboard refresh error:', error);
+            showToast('Failed to load dashboard data', 'error');
         }
     }
 
-    async function setRate() {
-        const rate = document.getElementById('rateInput').value;
-        await fetch(`/api/setRate?rate=${rate}`);
+    function updateSlotStatus(slotNumber, isOccupied) {
+        const card = document.getElementById(`slot${slotNumber}-card`);
+        const status = document.getElementById(`slot${slotNumber}-status`);
+        const icon = document.getElementById(`slot${slotNumber}-icon`);
+        const details = document.getElementById(`slot${slotNumber}-details`);
+
+        if (isOccupied) {
+            // Occupied state
+            card.classList.add('border-red-200');
+            card.classList.remove('border-slate-200', 'hover:border-blue-300');
+
+            status.textContent = 'OCCUPIED';
+            status.classList.remove('status-free');
+            status.classList.add('status-occupied');
+
+            icon.classList.remove('bg-emerald-100');
+            icon.classList.add('bg-red-100');
+            icon.querySelector('i').classList.remove('text-emerald-600');
+            icon.querySelector('i').classList.add('text-red-600');
+
+            details.textContent = 'Currently occupied';
+
+        } else {
+            // Free state
+            card.classList.remove('border-red-200');
+            card.classList.add('border-slate-200', 'hover:border-blue-300');
+
+            status.textContent = 'FREE';
+            status.classList.remove('status-occupied');
+            status.classList.add('status-free');
+
+            icon.classList.remove('bg-red-100');
+            icon.classList.add('bg-emerald-100');
+            icon.querySelector('i').classList.remove('text-red-600');
+            icon.querySelector('i').classList.add('text-emerald-600');
+
+            details.textContent = 'Available for parking';
+        }
     }
 
-    setInterval(refresh, 1000);
-    refresh();
+    function updateActiveVehicles(vehicles) {
+        const tbody = document.getElementById('active-vehicles-body');
+        const count = document.getElementById('active-count');
+        const activeCountDisplay = document.getElementById('active-count-display');
+        const activeNow = document.getElementById('active-now');
+
+        if (!vehicles || vehicles.length === 0) {
+            tbody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="py-8 text-center text-slate-500">
+                            <i class="las la-car text-3xl mb-3 block opacity-20"></i>
+                            <p>No active vehicles in parking</p>
+                        </td>
+                    </tr>
+                `;
+            count.textContent = '0 vehicles';
+            activeCountDisplay.textContent = '0';
+            activeNow.textContent = '0';
+            return;
+        }
+
+        let html = '';
+        let totalCost = 0;
+        let totalDuration = 0;
+
+        vehicles.forEach(v => {
+            totalCost += parseFloat(v.cost) || 0;
+            totalDuration += parseFloat(v.duration) || 0;
+
+            html += `
+                <tr class="table-row">
+                    <td class="py-3 px-4">
+                        <span class="font-medium text-slate-800">${v.vehicle}</span>
+                    </td>
+                    <td class="py-3 px-4">
+                        <span class="text-slate-600">${v.ownerName || 'Visitor'}</span>
+                    </td>
+                    <td class="py-3 px-4">
+                        <span class="text-slate-700">${v.duration}s</span>
+                    </td>
+                    <td class="py-3 px-4">
+                        <span class="font-semibold text-green-600">₹${v.cost}</span>
+                    </td>
+                    <td class="py-3 px-4">
+                        <span class="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full">Parked</span>
+                    </td>
+                </tr>
+                `;
+        });
+
+        tbody.innerHTML = html;
+        count.textContent = `${vehicles.length} vehicle${vehicles.length !== 1 ? 's' : ''}`;
+        activeCountDisplay.textContent = vehicles.length;
+        activeNow.textContent = vehicles.length;
+
+        // Update available slots
+        const availableSlots = 2 - vehicles.length;
+        document.getElementById('available-slots').textContent = availableSlots;
+    }
+
+    function updateStats() {
+        // Mock data - replace with real API calls
+        const mockData = {
+            todayRevenue: '245.50',
+            totalVehiclesToday: '12',
+            avgDuration: '125',
+            avgCost: '20.46'
+        };
+
+        document.getElementById('today-revenue').textContent = mockData.todayRevenue;
+        document.getElementById('total-vehicles-today').textContent = mockData.totalVehiclesToday;
+        document.getElementById('avg-duration').textContent = mockData.avgDuration + 's';
+        document.getElementById('avg-cost').textContent = mockData.avgCost;
+    }
+
+    // Admin Functions
+    async function loadVehicles() {
+        try {
+            const res = await fetch('/api/admin/list');
+            const data = await res.json();
+
+            const tbody = document.getElementById('vehicles-body');
+            const count = document.getElementById('registered-count');
+
+            if (!data || data.length === 0) {
+                tbody.innerHTML = `
+                        <tr>
+                            <td colspan="5" class="py-8 text-center text-slate-500">
+                                <div class="flex flex-col items-center">
+                                    <div class="w-16 h-16 border-2 border-dashed border-slate-300 rounded-full flex items-center justify-center mb-3">
+                                        <i class="las la-car text-slate-400 text-2xl"></i>
+                                    </div>
+                                    <p>No registered vehicles found</p>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                count.textContent = '0 vehicles';
+                return;
+            }
+
+            let html = '';
+            data.forEach(v => {
+                html += `
+                    <tr class="table-row">
+                        <td class="py-3 px-4">
+                            <span class="font-medium text-slate-800">${v.vehicleId}</span>
+                        </td>
+                        <td class="py-3 px-4">
+                            <span class="text-slate-600">${v.ownerName || 'Not specified'}</span>
+                        </td>
+                        <td class="py-3 px-4">
+                            <span class="text-slate-600">Car</span>
+                        </td>
+                        <td class="py-3 px-4">
+                            <span class="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">
+                                <i class="las la-check-circle mr-1"></i> Registered
+                            </span>
+                        </td>
+                        <td class="py-3 px-4">
+                            <button onclick="deleteVehicle('${v.vehicleId}')"
+                                    class="px-3 py-1 bg-red-50 text-red-600 rounded text-sm hover:bg-red-100 transition-colors">
+                                <i class="las la-trash mr-1"></i> Delete
+                            </button>
+                        </td>
+                    </tr>
+                    `;
+            });
+
+            tbody.innerHTML = html;
+            count.textContent = `${data.length} vehicle${data.length !== 1 ? 's' : ''}`;
+
+        } catch (error) {
+            console.error('Load vehicles error:', error);
+            tbody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="py-8 text-center text-red-500">
+                            <i class="las la-exclamation-triangle text-2xl mb-2 block"></i>
+                            <p>Error loading vehicles</p>
+                        </td>
+                    </tr>
+                `;
+            showToast('Failed to load vehicles', 'error');
+        }
+    }
+
+    async function addVehicle() {
+        const vehicleId = document.getElementById('veh-id').value.trim();
+        const ownerName = document.getElementById('owner-name').value.trim();
+        const vehicleType = document.getElementById('vehicle-type').value;
+
+        if (!vehicleId) {
+            showToast('Please enter a Vehicle ID', 'warning');
+            return;
+        }
+
+        try {
+            await fetch(`/api/admin/add?vehicle=${vehicleId}&name=${ownerName}`);
+
+            // Clear inputs
+            document.getElementById('veh-id').value = '';
+            document.getElementById('owner-name').value = '';
+
+            // Reload vehicles
+            loadVehicles();
+
+            showToast('Vehicle added successfully!', 'success');
+
+        } catch (error) {
+            console.error('Add vehicle error:', error);
+            showToast('Error adding vehicle', 'error');
+        }
+    }
+
+    async function deleteVehicle(vehicleId) {
+        if (!confirm(`Are you sure you want to delete vehicle ${vehicleId}?`)) {
+            return;
+        }
+
+        try {
+            await fetch(`/api/admin/delete?vehicle=${vehicleId}`);
+            loadVehicles();
+            showToast(`Vehicle ${vehicleId} deleted successfully!`, 'success');
+        } catch (error) {
+            console.error('Delete vehicle error:', error);
+            showToast('Error deleting vehicle', 'error');
+        }
+    }
+
+    async function loadAdminRate() {
+        try {
+            const res = await fetch('/api/status');
+            const data = await res.json();
+            document.getElementById('admin-rate-input').value = data.ratePerSecond;
+        } catch (error) {
+            console.error('Load rate error:', error);
+        }
+    }
+
+    async function updateAdminRate() {
+        const rate = document.getElementById('admin-rate-input').value;
+        if (!rate || rate <= 0) {
+            showToast('Please enter a valid rate', 'warning');
+            return;
+        }
+
+        try {
+            await fetch(`/api/setRate?rate=${rate}`);
+            loadAdminRate();
+            showToast('Rate updated successfully!', 'success');
+        } catch (error) {
+            console.error('Update rate error:', error);
+            showToast('Error updating rate', 'error');
+        }
+    }
+
+    async function updateRate() {
+        const rate = document.getElementById('rate-input').value;
+        if (!rate || rate <= 0) {
+            showToast('Please enter a valid rate', 'warning');
+            return;
+        }
+
+        try {
+            await fetch(`/api/setRate?rate=${rate}`);
+            showToast('Rate updated successfully!', 'success');
+            refreshDashboard();
+        } catch (error) {
+            console.error('Update rate error:', error);
+            showToast('Error updating rate', 'error');
+        }
+    }
+
+    function exportVehicleData() {
+        showToast('Exporting vehicle data...', 'info');
+    }
+
+    // Reports Functions
+    async function loadReports() {
+        try {
+            const res = await fetch('/api/report/summary');
+            const data = await res.json();
+
+            const container = document.getElementById('reports-content');
+
+            if (!data || data.length === 0) {
+                container.innerHTML = `
+                        <div class="text-center text-slate-500">
+                            <div class="w-16 h-16 border-2 border-dashed border-slate-300 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <i class="las la-chart-bar text-slate-400 text-2xl"></i>
+                            </div>
+                            <p>No parking records available</p>
+                        </div>
+                    `;
+                return;
+            }
+
+            let html = '<div class="grid grid-cols-1 md:grid-cols-2 gap-4">';
+            data.forEach(r => {
+                const avgCost = r.totalCost / (r.entries || 1);
+                html += `
+                    <div onclick="showToast('Viewing ${r.vehicle} history', 'info')"
+                         class="bg-white border border-slate-200 rounded-xl p-5 hover:border-green-300 transition-colors cursor-pointer">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
+                                <i class="las la-car text-blue-600"></i>
+                            </div>
+                            <h3 class="font-semibold text-slate-800">${r.vehicle}</h3>
+                        </div>
+                        <div class="space-y-2">
+                            <div class="flex justify-between">
+                                <span class="text-slate-600">Entries:</span>
+                                <span class="font-medium">${r.entries}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-600">Total Time:</span>
+                                <span class="font-medium">${r.totalTime}s</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-600">Total Cost:</span>
+                                <span class="font-bold text-green-600">₹${r.totalCost.toFixed(2)}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-600">Avg. Cost:</span>
+                                <span class="font-medium">₹${avgCost.toFixed(2)}</span>
+                            </div>
+                        </div>
+                    </div>
+                    `;
+            });
+            html += '</div>';
+
+            container.innerHTML = html;
+
+        } catch (error) {
+            console.error('Load reports error:', error);
+            container.innerHTML = `
+                    <div class="text-center text-red-500">
+                        <i class="las la-exclamation-triangle text-2xl mb-2 block"></i>
+                        <p>Failed to load reports</p>
+                    </div>
+                `;
+            showToast('Failed to load reports', 'error');
+        }
+    }
+
+    function applyFilters() {
+        const dateRange = document.getElementById('date-range').value;
+        const vehicleType = document.getElementById('vehicle-type-filter').value;
+        showToast(`Filters applied: ${dateRange}, ${vehicleType}`, 'info');
+    }
+
+    function exportCSV() {
+        showToast('Exporting data as CSV...', 'info');
+    }
+
+    function exportPDF() {
+        showToast('Exporting data as PDF...', 'info');
+    }
+
+    // Toast Notification System
+    function showToast(message, type = 'info') {
+        const toast = document.getElementById('toast');
+        const toastIcon = document.getElementById('toast-icon');
+        const toastMessage = document.getElementById('toast-message');
+
+        // Set icon and color based on type
+        let icon = 'las la-info-circle';
+        let color = 'border-blue-500 text-blue-500';
+
+        switch(type) {
+            case 'success':
+                icon = 'las la-check-circle';
+                color = 'border-green-500 text-green-500';
+                break;
+            case 'error':
+                icon = 'las la-exclamation-circle';
+                color = 'border-red-500 text-red-500';
+                break;
+            case 'warning':
+                icon = 'las la-exclamation-triangle';
+                color = 'border-amber-500 text-amber-500';
+                break;
+        }
+
+        toastIcon.className = icon + ' ' + color.split(' ')[1];
+        toast.querySelector('.animate-slideIn').className = `bg-white rounded-lg shadow-lg p-4 min-w-[300px] border-l-4 animate-slideIn ${color.split(' ')[0]}`;
+        toastMessage.textContent = message;
+
+        // Show toast
+        toast.classList.remove('hidden');
+
+        // Auto hide after 3 seconds
+        setTimeout(hideToast, 3000);
+    }
+
+    function hideToast() {
+        document.getElementById('toast').classList.add('hidden');
+    }
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', function() {
+        // Set dashboard as default page
+        showPage('dashboard');
+
+        // Auto-refresh dashboard every 2 seconds
+        setInterval(refreshDashboard, 2000);
+
+        // Add slideIn animation
+        const style = document.createElement('style');
+        style.textContent = `
+                @keyframes slideIn {
+                    from { transform: translateX(100%); opacity: 0; }
+                    to { transform: translateX(0); opacity: 1; }
+                }
+                .animate-slideIn {
+                    animation: slideIn 0.3s ease-out;
+                }
+            `;
+        document.head.appendChild(style);
+    });
 </script>
-
-
 </body>
 </html>

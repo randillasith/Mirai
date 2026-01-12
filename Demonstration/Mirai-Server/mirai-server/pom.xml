@@ -23,7 +23,7 @@
         <java.version>17</java.version>
     </properties>
 
-    <!-- ✅ DEPENDENCIES -->
+
     <dependencies>
 
         <!-- Spring Boot Web (includes MVC, Tomcat, JSON) -->
@@ -52,7 +52,7 @@
         </dependency>
 
 
-        <!-- Testing (optional but safe) -->
+        <!-- Testing -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>

@@ -34,7 +34,7 @@ public class ParkingService {
         vehicle = vehicle.toUpperCase();
         LocalDateTime now = LocalDateTime.now();
 
-        // ❌ Vehicle not registered
+        // Vehicle not registered
         if (!vehicleService.exists(vehicle)) {
             return "DENIED|Unknown Vehicle";
         }
@@ -45,7 +45,7 @@ public class ParkingService {
         /* ================= ENTRY ================= */
         if (existing == null) {
 
-            // 🚫 Parking FULL → block ENTRY only
+            // Parking FULL - block ENTRY only
             if (ParkingStore.activeSessions.size() >= TOTAL_SLOTS) {
                 return "FULL|Parking Full";
             }

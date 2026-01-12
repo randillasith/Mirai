@@ -87,7 +87,7 @@ public class ParkingService {
         ParkingStore.activeSessions.remove(uid);
 
         // Update slot flags safely
-        updateSlots();
+        // updateSlots();
 
         return "OK_OUT|Rs " + String.format("%.2f", cost);
     }

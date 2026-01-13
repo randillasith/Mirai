@@ -83,9 +83,39 @@ public class ParkingService {
 
             ParkingStore.activeSessions.put(uid, s);
             updateSlots();
+            // 🔥 BOOKED VEHICLE HAS ENTERED → CONSUME BOOKING
+            if (ParkingStore.slot1BookedVehicle != null &&
+                    ParkingStore.slot1BookedVehicle.equals(vehicle)) {
+
+                ParkingStore.slot1BookedVehicle = null;
+                ParkingStore.slot1State = "OCCUPIED";
+            }
+
+            if (ParkingStore.slot2BookedVehicle != null &&
+                    ParkingStore.slot2BookedVehicle.equals(vehicle)) {
+
+                ParkingStore.slot2BookedVehicle = null;
+                ParkingStore.slot2State = "OCCUPIED";
+            }
+
 
             return "OK_IN|" + vehicleService.getOwner(vehicle);
         }
+        // After validating vehicle and allowing entry
+        if (ParkingStore.slot1BookedVehicle != null &&
+                ParkingStore.slot1BookedVehicle.equals(vehicle)) {
+
+            ParkingStore.slot1BookedVehicle = null;
+            ParkingStore.slot1State = "OCCUPIED";
+        }
+
+        if (ParkingStore.slot2BookedVehicle != null &&
+                ParkingStore.slot2BookedVehicle.equals(vehicle)) {
+
+            ParkingStore.slot2BookedVehicle = null;
+            ParkingStore.slot2State = "OCCUPIED";
+        }
+
 
 
         /* ================= EXIT ================= */

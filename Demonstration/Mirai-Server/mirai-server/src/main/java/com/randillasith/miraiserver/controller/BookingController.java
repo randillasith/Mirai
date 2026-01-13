@@ -17,30 +17,19 @@ public class BookingController {
 
         vehicle = vehicle.toUpperCase();
 
-        // ❌ Do NOT count bookings as capacity
-        int occupied = 0;
-        if (ParkingStore.slot1Occ) occupied++;
-        if (ParkingStore.slot2Occ) occupied++;
-
-        if (occupied >= 2) {
-            return "FULL";
-        }
-
-        if (ParkingStore.activeBookings.containsKey(vehicle)) {
-            return "ALREADY_BOOKED";
-        }
-
-        ParkingStore.activeBookings.put(vehicle, LocalDateTime.now());
-
-        // ✅ Set slot to BOOKED explicitly
-        if (slot == 1 && !ParkingStore.slot1Occ) {
-            ParkingStore.slot1Booked = true;
+        if (slot == 1) {
+            if (ParkingStore.slot1BookedVehicle != null) return "ALREADY_BOOKED";
+            ParkingStore.slot1BookedVehicle = vehicle;
             ParkingStore.slot1State = "BOOKED";
-        } else if (slot == 2 && !ParkingStore.slot2Occ) {
-            ParkingStore.slot2Booked = true;
+        }
+
+        if (slot == 2) {
+            if (ParkingStore.slot2BookedVehicle != null) return "ALREADY_BOOKED";
+            ParkingStore.slot2BookedVehicle = vehicle;
             ParkingStore.slot2State = "BOOKED";
         }
 
         return "BOOKED";
     }
+
 }

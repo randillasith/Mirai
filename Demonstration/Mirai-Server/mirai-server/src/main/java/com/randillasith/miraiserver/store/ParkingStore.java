@@ -25,6 +25,10 @@ public class ParkingStore {
     public static boolean slot1Booked = false;   // 🔥 ADD THIS
     public static boolean slot2Booked = false;
 
+    public static String slot1BookedVehicle = null;
+    public static String slot2BookedVehicle = null;
+
+
     // Rate
     public static double ratePerSecond = 1.0;
 

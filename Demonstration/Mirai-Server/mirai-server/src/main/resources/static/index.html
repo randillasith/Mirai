@@ -966,10 +966,11 @@
 
             // Update available slots
             let free = 0;
-            if (data.slot1State === 'FREE') free++;
-            if (data.slot2State === 'FREE') free++;
+            if (slot1State === 'FREE') free++;
+            if (slot2State === 'FREE') free++;
 
             document.getElementById('available-slots').textContent = free;
+
 
         }
 

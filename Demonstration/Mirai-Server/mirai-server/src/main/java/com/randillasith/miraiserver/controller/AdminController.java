@@ -2,6 +2,7 @@ package com.randillasith.miraiserver.controller;
 
 import com.randillasith.miraiserver.model.VehicleEntity;
 import com.randillasith.miraiserver.service.VehicleService;
+import com.randillasith.miraiserver.store.ParkingStore;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.web.bind.annotation.*;
 
@@ -40,6 +41,37 @@ public class AdminController {
         vehicleService.delete(vehicle.toUpperCase());
         return "OK";
     }
+    @RestController
+    @RequestMapping("/api")
+    public class RfidWriteController {
+
+        @PostMapping("/rfid/write")
+        public String requestWrite(@RequestParam String vehicle) {
+
+            if (ParkingStore.pendingWriteVehicle != null) {
+                return "BUSY";
+            }
+
+            ParkingStore.pendingWriteVehicle = vehicle.toUpperCase();
+            return "WRITE_ARMED";
+        }
+
+        @GetMapping("/rfid/pending")
+        public String getPendingWrite() {
+
+            if (ParkingStore.pendingWriteVehicle == null) {
+                return "NONE";
+            }
+
+            return "WRITE:" + ParkingStore.pendingWriteVehicle;
+        }
+
+        @PostMapping("/rfid/clear")
+        public void clearPendingWrite() {
+            ParkingStore.pendingWriteVehicle = null;
+        }
+    }
+
     private void check(HttpSession session) {
         Boolean ok = (Boolean) session.getAttribute("ADMIN");
         if (ok == null || !ok) {

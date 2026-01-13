@@ -14,6 +14,8 @@ public class ParkingStore {
 
     public static final Map<String, Session> activeSessions = new ConcurrentHashMap<>();
     public static Map<String, LocalDateTime> activeBookings = new ConcurrentHashMap<>();
+    public static volatile String pendingWriteVehicle = null;
+
 
     // Parking slots
     public static boolean slot1Occ = false;

@@ -11,7 +11,7 @@ public class SlotController {
     @RequestMapping(value = "/slot", method = {RequestMethod.GET, RequestMethod.POST})
     public String updateSlot(
             @RequestParam("slot") int slot,
-            @RequestParam("occupied") String occupied
+            @RequestParam("occ") String occupied
     ) {
         // Safely convert occupied value
         boolean isOccupied =

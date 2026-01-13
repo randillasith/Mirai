@@ -7,20 +7,29 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api")
 public class SlotController {
 
-    @GetMapping("/slot")
-    public void updateSlot(
-            @RequestParam int slot,
-            @RequestParam boolean occupied
+    // Accept BOTH GET and POST
+    @RequestMapping(value = "/slot", method = {RequestMethod.GET, RequestMethod.POST})
+    public String updateSlot(
+            @RequestParam("slot") int slot,
+            @RequestParam("occupied") String occupied
     ) {
-        System.out.println("Slot update received: slot=" + slot + " occupied=" + occupied);
+        // Safely convert occupied value
+        boolean isOccupied =
+                occupied.equalsIgnoreCase("true") ||
+                        occupied.equals("1");
+
+        System.out.println(
+                "ULTRASONIC → slot=" + slot + " occupied=" + isOccupied
+        );
 
         if (slot == 1) {
-            ParkingStore.slot1Occ = occupied;
-            ParkingStore.slot1State = occupied ? "OCCUPIED" : "FREE";
+            ParkingStore.slot1Occ = isOccupied;
+            ParkingStore.slot1State = isOccupied ? "OCCUPIED" : "FREE";
         } else if (slot == 2) {
-            ParkingStore.slot2Occ = occupied;
-            ParkingStore.slot2State = occupied ? "OCCUPIED" : "FREE";
+            ParkingStore.slot2Occ = isOccupied;
+            ParkingStore.slot2State = isOccupied ? "OCCUPIED" : "FREE";
         }
+
+        return "OK";
     }
 }
-

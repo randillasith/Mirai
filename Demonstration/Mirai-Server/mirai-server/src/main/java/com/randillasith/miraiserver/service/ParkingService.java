@@ -45,9 +45,11 @@ public class ParkingService {
         /* ================= ENTRY ================= */
         if (existing == null) {
 
-            int usedSlots =
-                    ParkingStore.activeSessions.size()
-                            + ParkingStore.activeBookings.size();
+            int usedSlots = 0;
+
+            if (ParkingStore.slot1Occ) usedSlots++;
+            if (ParkingStore.slot2Occ) usedSlots++;
+
 
             if (usedSlots >= TOTAL_SLOTS) {
                 return "FULL|Parking Full";

@@ -64,6 +64,17 @@ public class ParkingService {
             // Consume booking if exists
             ParkingStore.activeBookings.remove(vehicle);
 
+            // Consume booking when booked vehicle arrives
+            if (ParkingStore.slot1Booked) {
+                ParkingStore.slot1Booked = false;
+                ParkingStore.slot1State = "OCCUPIED";
+            }
+            if (ParkingStore.slot2Booked) {
+                ParkingStore.slot2Booked = false;
+                ParkingStore.slot2State = "OCCUPIED";
+            }
+
+
             Session s = new Session();
             s.uid = uid;
             s.vehicle = vehicle;

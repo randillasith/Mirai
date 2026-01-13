@@ -7,21 +7,22 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDateTime;
-
 @RestController
 @RequestMapping("/api")
 public class BookingController {
 
     @PostMapping("/book")
-    public String book(@RequestParam String vehicle) {
+    public String book(@RequestParam String vehicle,
+                       @RequestParam int slot) {
 
         vehicle = vehicle.toUpperCase();
 
-        int used =
-                ParkingStore.activeSessions.size()
-                        + ParkingStore.activeBookings.size();
+        // ❌ Do NOT count bookings as capacity
+        int occupied = 0;
+        if (ParkingStore.slot1Occ) occupied++;
+        if (ParkingStore.slot2Occ) occupied++;
 
-        if (used >= 2) {
+        if (occupied >= 2) {
             return "FULL";
         }
 
@@ -31,24 +32,15 @@ public class BookingController {
 
         ParkingStore.activeBookings.put(vehicle, LocalDateTime.now());
 
-        updateSlotStates();
+        // ✅ Set slot to BOOKED explicitly
+        if (slot == 1 && !ParkingStore.slot1Occ) {
+            ParkingStore.slot1Booked = true;
+            ParkingStore.slot1State = "BOOKED";
+        } else if (slot == 2 && !ParkingStore.slot2Occ) {
+            ParkingStore.slot2Booked = true;
+            ParkingStore.slot2State = "BOOKED";
+        }
+
         return "BOOKED";
     }
-
-    private void updateSlotStates() {
-        int sessions = ParkingStore.activeSessions.size();
-        int bookings = ParkingStore.activeBookings.size();
-
-        if (sessions >= 1) ParkingStore.slot1State = "OCCUPIED";
-        else if (bookings >= 1) ParkingStore.slot1State = "BOOKED";
-        else ParkingStore.slot1State = "FREE";
-
-        if (sessions + bookings >= 2) {
-            ParkingStore.slot2State =
-                    (sessions >= 2) ? "OCCUPIED" : "BOOKED";
-        } else {
-            ParkingStore.slot2State = "FREE";
-        }
-    }
-
 }

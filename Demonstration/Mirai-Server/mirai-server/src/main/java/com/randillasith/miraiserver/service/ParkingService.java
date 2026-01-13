@@ -15,7 +15,6 @@ public class ParkingService {
     private final VehicleService vehicleService;
     private final ParkingHistoryRepository historyRepository;
 
-    // 🔢 total parking slots
     private static final int TOTAL_SLOTS = 2;
 
     public ParkingService(
@@ -34,91 +33,64 @@ public class ParkingService {
         vehicle = vehicle.toUpperCase();
         LocalDateTime now = LocalDateTime.now();
 
-        // Vehicle not registered
+        // ❌ Unknown vehicle
         if (!vehicleService.exists(vehicle)) {
             return "DENIED|Unknown Vehicle";
         }
 
-        // Check if UID already inside (EXIT case)
-        Session existing = ParkingStore.activeSessions.get(uid);
+        // 🔑 Track session by VEHICLE (not UID)
+        Session existing = ParkingStore.activeSessions.get(vehicle);
 
-        /* ================= ENTRY ================= */
+        /* ===================== ENTRY ===================== */
         if (existing == null) {
 
-            int usedSlots = 0;
+            int in = ParkingStore.activeSessions.size();
 
-            if (ParkingStore.slot1Occ) usedSlots++;
-            if (ParkingStore.slot2Occ) usedSlots++;
+            // 🔥 Count BOOKED SLOTS
+            int bookedSlots = 0;
+            if (ParkingStore.slot1BookedVehicle != null) bookedSlots++;
+            if (ParkingStore.slot2BookedVehicle != null) bookedSlots++;
 
+            boolean isBookedVehicle =
+                    vehicle.equals(ParkingStore.slot1BookedVehicle) ||
+                            vehicle.equals(ParkingStore.slot2BookedVehicle);
 
-            if (usedSlots >= TOTAL_SLOTS) {
-                return "FULL|Parking Full";
+            // 🔥 FULL when (IN + BOOKED >= TOTAL_SLOTS)
+            if (in + bookedSlots >= TOTAL_SLOTS) {
+                if (!isBookedVehicle) {
+                    return "FULL|Parking Full";
+                }
             }
 
-            // ❗ Block non-booked vehicles if bookings exist
-            if (!ParkingStore.activeBookings.isEmpty()
-                    && !ParkingStore.activeBookings.containsKey(vehicle)) {
-                return "DENIED|Slot Reserved";
-            }
 
-            // Consume booking if exists
-            ParkingStore.activeBookings.remove(vehicle);
 
-            // Consume booking when booked vehicle arrives
-            if (ParkingStore.slot1Booked) {
-                ParkingStore.slot1Booked = false;
+            // ✅ Consume booking if this vehicle was booked
+            if (vehicle.equals(ParkingStore.slot1BookedVehicle)) {
+                ParkingStore.slot1BookedVehicle = null;
                 ParkingStore.slot1State = "OCCUPIED";
             }
-            if (ParkingStore.slot2Booked) {
-                ParkingStore.slot2Booked = false;
+
+            if (vehicle.equals(ParkingStore.slot2BookedVehicle)) {
+                ParkingStore.slot2BookedVehicle = null;
                 ParkingStore.slot2State = "OCCUPIED";
             }
 
+            ParkingStore.activeBookings.remove(vehicle); // safety cleanup
 
+            // Create new session
             Session s = new Session();
             s.uid = uid;
             s.vehicle = vehicle;
             s.startReader = reader;
             s.startTime = now;
 
-            ParkingStore.activeSessions.put(uid, s);
-            updateSlots();
-            // 🔥 BOOKED VEHICLE HAS ENTERED → CONSUME BOOKING
-            if (ParkingStore.slot1BookedVehicle != null &&
-                    ParkingStore.slot1BookedVehicle.equals(vehicle)) {
-
-                ParkingStore.slot1BookedVehicle = null;
-                ParkingStore.slot1State = "OCCUPIED";
-            }
-
-            if (ParkingStore.slot2BookedVehicle != null &&
-                    ParkingStore.slot2BookedVehicle.equals(vehicle)) {
-
-                ParkingStore.slot2BookedVehicle = null;
-                ParkingStore.slot2State = "OCCUPIED";
-            }
-
+            ParkingStore.activeSessions.put(vehicle, s);
 
             return "OK_IN|" + vehicleService.getOwner(vehicle);
         }
-        // After validating vehicle and allowing entry
-        if (ParkingStore.slot1BookedVehicle != null &&
-                ParkingStore.slot1BookedVehicle.equals(vehicle)) {
 
-            ParkingStore.slot1BookedVehicle = null;
-            ParkingStore.slot1State = "OCCUPIED";
-        }
+        /* ===================== EXIT ===================== */
 
-        if (ParkingStore.slot2BookedVehicle != null &&
-                ParkingStore.slot2BookedVehicle.equals(vehicle)) {
-
-            ParkingStore.slot2BookedVehicle = null;
-            ParkingStore.slot2State = "OCCUPIED";
-        }
-
-
-
-        /* ================= EXIT ================= */
         long durationSeconds =
                 Duration.between(existing.startTime, now).getSeconds();
 
@@ -126,9 +98,8 @@ public class ParkingService {
 
         double cost = durationSeconds * ParkingStore.ratePerSecond;
 
-        // Save completed session to DB
         ParkingHistoryEntity h = new ParkingHistoryEntity();
-        h.uid = uid;
+        h.uid = existing.uid;
         h.vehicleId = existing.vehicle;
         h.entryTime = existing.startTime;
         h.exitTime = now;
@@ -137,27 +108,8 @@ public class ParkingService {
 
         historyRepository.save(h);
 
-        // Remove active session
-        ParkingStore.activeSessions.remove(uid);
-
-        // Update slot flags safely
-        // updateSlots();
+        ParkingStore.activeSessions.remove(vehicle);
 
         return "OK_OUT|Rs " + String.format("%.2f", cost);
     }
-
-    /**
-     * Updates slot occupancy based on active sessions count
-     */
-
-    private void updateSlots() {
-        int used =
-                ParkingStore.activeSessions.size()
-                        + ParkingStore.activeBookings.size();
-
-        ParkingStore.slot1Occ = used >= 1;
-        ParkingStore.slot2Occ = used >= 2;
-    }
-
-
 }

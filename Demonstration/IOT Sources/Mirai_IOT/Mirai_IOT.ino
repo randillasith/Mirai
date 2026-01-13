@@ -7,7 +7,7 @@
 #include <Wire.h>
 #include <U8g2lib.h>  // OLED
 unsigned long writeModeStart = 0;
-const unsigned long WRITE_TIMEOUT_MS = 40000;  // 40 seconds
+const unsigned long WRITE_TIMEOUT_MS = 15000;  // 40 seconds
 
 // ---------------- RFID PINS ----------------
 #define SS_PIN 5   // RC522 SDA/SS
@@ -532,7 +532,7 @@ void checkWriteFromServer() {
     if (body.startsWith("WRITE:")) {
       pendingWriteText = body.substring(6);
       writePending = true;
-
+      writeModeStart = millis();
       Serial.print("WRITE MODE ENABLED → ");
       Serial.println(pendingWriteText);
     }

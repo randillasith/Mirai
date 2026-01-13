@@ -4,19 +4,22 @@ import com.randillasith.miraiserver.store.ParkingStore;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/slot")
 public class SlotController {
 
-    @GetMapping("/slot")
-    public String updateSlot(
+    @PostMapping("/update")
+    public void updateSlot(
             @RequestParam int slot,
-            @RequestParam int occ) {
-
-        boolean occupied = occ == 1;
-
-        if (slot == 1) ParkingStore.slot1Occ = occupied;
-        if (slot == 2) ParkingStore.slot2Occ = occupied;
-
-        return "OK";
+            @RequestParam boolean occupied
+    ) {
+        if (slot == 1) {
+            ParkingStore.slot1Occ = occupied;
+            ParkingStore.slot1State = occupied ? "OCCUPIED" : "FREE";
+        }
+        if (slot == 2) {
+            ParkingStore.slot2Occ = occupied;
+            ParkingStore.slot2State = occupied ? "OCCUPIED" : "FREE";
+        }
     }
 }
+

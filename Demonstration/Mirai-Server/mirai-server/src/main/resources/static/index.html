@@ -909,70 +909,51 @@
         }
 
 
-        function updateActiveVehicles(vehicles) {
+        function updateActiveVehicles(vehicles, slot1State, slot2State) {
+
             const tbody = document.getElementById('active-vehicles-body');
             const count = document.getElementById('active-count');
             const activeCountDisplay = document.getElementById('active-count-display');
             const activeNow = document.getElementById('active-now');
+            const availableSlots = document.getElementById('available-slots');
 
             if (!vehicles || vehicles.length === 0) {
                 tbody.innerHTML = `
-                    <tr>
-                        <td colspan="5" class="py-8 text-center text-slate-500">
-                            <i class="las la-car text-3xl mb-3 block opacity-20"></i>
-                            <p>No active vehicles in parking</p>
-                        </td>
-                    </tr>
-                `;
+            <tr>
+                <td colspan="5" class="py-8 text-center text-slate-500">
+                    <p>No active vehicles</p>
+                </td>
+            </tr>
+        `;
                 count.textContent = '0 vehicles';
                 activeCountDisplay.textContent = '0';
                 activeNow.textContent = '0';
-                return;
+            } else {
+                let html = '';
+                vehicles.forEach(v => {
+                    html += `
+                <tr>
+                    <td>${v.vehicle}</td>
+                    <td>${v.ownerName || 'Visitor'}</td>
+                    <td>${v.duration}s</td>
+                    <td>Rs.${v.cost}</td>
+                    <td>Parked</td>
+                </tr>
+            `;
+                });
+                tbody.innerHTML = html;
+                count.textContent = `${vehicles.length} vehicle(s)`;
+                activeCountDisplay.textContent = vehicles.length;
+                activeNow.textContent = vehicles.length;
             }
 
-            let html = '';
-            let totalCost = 0;
-            let totalDuration = 0;
-
-            vehicles.forEach(v => {
-                totalCost += parseFloat(v.cost) || 0;
-                totalDuration += parseFloat(v.duration) || 0;
-
-                html += `
-                <tr class="table-row">
-                    <td class="py-3 px-4">
-                        <span class="font-medium text-slate-800">${v.vehicle}</span>
-                    </td>
-                    <td class="py-3 px-4">
-                        <span class="text-slate-600">${v.ownerName || 'Visitor'}</span>
-                    </td>
-                    <td class="py-3 px-4">
-                        <span class="text-slate-700">${v.duration}s</span>
-                    </td>
-                    <td class="py-3 px-4">
-                        <span class="font-semibold text-green-600">Rs.${v.cost}</span>
-                    </td>
-                    <td class="py-3 px-4">
-                        <span class="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full">Parked</span>
-                    </td>
-                </tr>
-                `;
-            });
-
-            tbody.innerHTML = html;
-            count.textContent = `${vehicles.length} vehicle${vehicles.length !== 1 ? 's' : ''}`;
-            activeCountDisplay.textContent = vehicles.length;
-            activeNow.textContent = vehicles.length;
-
-            // Update available slots
+            // ✅ SLOT CALCULATION (NO GLOBALS)
             let free = 0;
             if (slot1State === 'FREE') free++;
             if (slot2State === 'FREE') free++;
-
-            document.getElementById('available-slots').textContent = free;
-
-
+            availableSlots.textContent = free;
         }
+
 
         // Admin Functions
         async function loadVehicles() {

@@ -139,6 +139,11 @@
             background: rgba(255, 255, 255, 0.9);
             backdrop-filter: blur(10px);
         }
+        .status-booked {
+            background: rgba(245, 158, 11, 0.15);
+            color: #f59e0b;
+        }
+
     </style>
 </head>
 
@@ -358,6 +363,23 @@
                             </table>
                         </div>
                     </div>
+                    <div class="bg-white rounded-xl p-6 card-shadow">
+                        <h3 class="text-lg font-semibold mb-4">Book Parking Slot</h3>
+
+                        <input id="book-vehicle" placeholder="Vehicle ID (VH-002)"
+                               class="border px-3 py-2 rounded w-full mb-2">
+
+                        <select id="book-slot" class="border px-3 py-2 rounded w-full mb-2">
+                            <option value="1">Slot 1</option>
+                            <option value="2">Slot 2</option>
+                        </select>
+
+                        <button onclick="bookSlot()"
+                                class="btn-primary px-4 py-2 rounded">
+                            Book Slot
+                        </button>
+                    </div>
+
                 </div>
 
 
@@ -836,8 +858,9 @@
                 const data = await res.json();
 
                 // Update slot status
-                updateSlotStatus(1, data.slot1Occ);
-                updateSlotStatus(2, data.slot2Occ);
+                updateSlotStatus(1, data.slot1State);
+                updateSlotStatus(2, data.slot2State);
+
 
                 // Update active vehicles
                 updateActiveVehicles(data.active);
@@ -852,45 +875,39 @@
         }
 
 
-        function updateSlotStatus(slotNumber, isOccupied) {
+        function updateSlotStatus(slotNumber, state) {
             const card = document.getElementById(`slot${slotNumber}-card`);
             const status = document.getElementById(`slot${slotNumber}-status`);
             const icon = document.getElementById(`slot${slotNumber}-icon`);
             const details = document.getElementById(`slot${slotNumber}-details`);
 
-            if (isOccupied) {
-                // Occupied state
-                card.classList.add('border-red-200');
-                card.classList.remove('border-slate-200', 'hover:border-blue-300');
+            // Reset classes
+            status.className = 'status-badge';
+            icon.className = 'w-12 h-12 rounded-lg flex items-center justify-center';
 
+            if (state === 'OCCUPIED') {
                 status.textContent = 'OCCUPIED';
-                status.classList.remove('status-free');
                 status.classList.add('status-occupied');
 
-                icon.classList.remove('bg-emerald-100');
                 icon.classList.add('bg-red-100');
-                icon.querySelector('i').classList.remove('text-emerald-600');
-                icon.querySelector('i').classList.add('text-red-600');
+                details.textContent = 'Vehicle parked';
 
-                details.textContent = 'Currently occupied';
+            } else if (state === 'BOOKED') {
+                status.textContent = 'BOOKED';
+                status.classList.add('status-booked');
+
+                icon.classList.add('bg-yellow-100');
+                details.textContent = 'Reserved – waiting arrival';
 
             } else {
-                // Free state
-                card.classList.remove('border-red-200');
-                card.classList.add('border-slate-200', 'hover:border-blue-300');
-
                 status.textContent = 'FREE';
-                status.classList.remove('status-occupied');
                 status.classList.add('status-free');
 
-                icon.classList.remove('bg-red-100');
                 icon.classList.add('bg-emerald-100');
-                icon.querySelector('i').classList.remove('text-red-600');
-                icon.querySelector('i').classList.add('text-emerald-600');
-
                 details.textContent = 'Available for parking';
             }
         }
+
 
         function updateActiveVehicles(vehicles) {
             const tbody = document.getElementById('active-vehicles-body');
@@ -948,8 +965,12 @@
             activeNow.textContent = vehicles.length;
 
             // Update available slots
-            const availableSlots = 2 - vehicles.length;
-            document.getElementById('available-slots').textContent = availableSlots;
+            let free = 0;
+            if (data.slot1State === 'FREE') free++;
+            if (data.slot2State === 'FREE') free++;
+
+            document.getElementById('available-slots').textContent = free;
+
         }
 
         // Admin Functions
@@ -1022,6 +1043,19 @@
                 showToast('Failed to load vehicles', 'error');
             }
         }
+        async function bookSlot() {
+            const vehicle = document.getElementById('book-vehicle').value;
+            const slot = document.getElementById('book-slot').value;
+
+            const res = await fetch(
+                `/api/book?vehicle=${vehicle}&slot=${slot}`,
+                { method: 'POST' }
+            );
+
+            const text = await res.text();
+            alert(text);
+        }
+
 
         async function addVehicle() {
             const vehicleId = document.getElementById('veh-id').value.trim();

@@ -45,10 +45,22 @@ public class ParkingService {
         /* ================= ENTRY ================= */
         if (existing == null) {
 
-            // Parking FULL - block ENTRY only
-            if (ParkingStore.activeSessions.size() >= TOTAL_SLOTS) {
+            int usedSlots =
+                    ParkingStore.activeSessions.size()
+                            + ParkingStore.activeBookings.size();
+
+            if (usedSlots >= TOTAL_SLOTS) {
                 return "FULL|Parking Full";
             }
+
+            // ❗ Block non-booked vehicles if bookings exist
+            if (!ParkingStore.activeBookings.isEmpty()
+                    && !ParkingStore.activeBookings.containsKey(vehicle)) {
+                return "DENIED|Slot Reserved";
+            }
+
+            // Consume booking if exists
+            ParkingStore.activeBookings.remove(vehicle);
 
             Session s = new Session();
             s.uid = uid;
@@ -57,12 +69,11 @@ public class ParkingService {
             s.startTime = now;
 
             ParkingStore.activeSessions.put(uid, s);
-
-            // Update slot flags safely
             updateSlots();
 
             return "OK_IN|" + vehicleService.getOwner(vehicle);
         }
+
 
         /* ================= EXIT ================= */
         long durationSeconds =
@@ -95,9 +106,15 @@ public class ParkingService {
     /**
      * Updates slot occupancy based on active sessions count
      */
+
     private void updateSlots() {
-        int count = ParkingStore.activeSessions.size();
-        ParkingStore.slot1Occ = count >= 1;
-        ParkingStore.slot2Occ = count >= 2;
+        int used =
+                ParkingStore.activeSessions.size()
+                        + ParkingStore.activeBookings.size();
+
+        ParkingStore.slot1Occ = used >= 1;
+        ParkingStore.slot2Occ = used >= 2;
     }
+
+
 }

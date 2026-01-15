@@ -16,9 +16,9 @@ public class StatusController {
 
         Map<String, Object> res = new HashMap<>();
 
-        // slot status
-        res.put("slot1Occ", ParkingStore.slot1Occ);
-        res.put("slot2Occ", ParkingStore.slot2Occ);
+        // ✅ slot STATES (FREE / BOOKED / OCCUPIED)
+        res.put("slot1State", ParkingStore.slot1State);
+        res.put("slot2State", ParkingStore.slot2State);
 
         // rate
         res.put("ratePerSecond", ParkingStore.ratePerSecond);
@@ -27,14 +27,16 @@ public class StatusController {
         List<Map<String, Object>> active = new ArrayList<>();
 
         for (Session s : ParkingStore.activeSessions.values()) {
-            long sec = Duration.between(s.startTime, LocalDateTime.now()).getSeconds();
+            long sec = Duration
+                    .between(s.startTime, LocalDateTime.now())
+                    .getSeconds();
+
             if (sec < 0) sec = 0;
 
             double cost = sec * ParkingStore.ratePerSecond;
 
             Map<String, Object> v = new HashMap<>();
             v.put("vehicle", s.vehicle);
-            v.put("ownerName", "");
             v.put("duration", sec);
             v.put("cost", String.format("%.2f", cost));
 
@@ -45,3 +47,5 @@ public class StatusController {
         return res;
     }
 }
+
+

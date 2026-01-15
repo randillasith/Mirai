@@ -6,6 +6,8 @@
 #include <ESP32Servo.h>  // SERVO
 #include <Wire.h>
 #include <U8g2lib.h>  // OLED
+unsigned long writeModeStart = 0;
+const unsigned long WRITE_TIMEOUT_MS = 15000;  // 40 seconds
 
 // ---------------- RFID PINS ----------------
 #define SS_PIN 5   // RC522 SDA/SS
@@ -78,12 +80,10 @@ void sendSlotToServer(int slot, bool occ) {
   if (WiFi.status() != WL_CONNECTED) return;
 
   WiFiClientSecure client;
-  client.setInsecure();   // <-- THIS is REQUIRED for HTTPS
+  client.setInsecure();  // <-- THIS is REQUIRED for HTTPS
 
   HTTPClient http;
-  String url = "https://" + serverIP +
-               "/api/slot?slot=" + String(slot) +
-               "&occ=" + (occ ? "1" : "0");
+  String url = "https://" + serverIP + "/api/slot?slot=" + String(slot) + "&occ=" + (occ ? "1" : "0");
 
   Serial.print("Slot update request: ");
   Serial.println(url);
@@ -248,16 +248,13 @@ void sendScanToServer(const String& uid, const String& text, bool isWrite) {
     return;
   }
 
- WiFiClientSecure client;
-client.setInsecure();
+  WiFiClientSecure client;
+  client.setInsecure();
 
-HTTPClient http;
-String url = "https://" + serverIP +
-             "/api/scan?uid=" + uid +
-             "&reader=1&text=" + urlEncode(text) +
-             "&mode=" + (isWrite ? "write" : "read");
+  HTTPClient http;
+  String url = "https://" + serverIP + "/api/scan?uid=" + uid + "&reader=1&text=" + urlEncode(text) + "&mode=" + (isWrite ? "write" : "read");
 
-http.begin(client, url);
+  http.begin(client, url);
 
   Serial.print("Request: ");
   Serial.println(url);
@@ -349,33 +346,8 @@ http.begin(client, url);
   http.end();
 }
 
-// keep this for compatibility - server doesn't implement /api/getWrite, so it will just do nothing
-void checkWriteFromServer() {
-  static unsigned long lastCheck = 0;
-  if (millis() - lastCheck < 2000) return;  // every 2 seconds
-  lastCheck = millis();
 
-  if (writePending) return;
-  if (WiFi.status() != WL_CONNECTED) return;
 
-  HTTPClient http;
-  String url = "http://" + serverIP + "/api/getWrite";
-  http.begin(url);
-  int httpCode = http.GET();
-  if (httpCode == 200) {
-    String body = http.getString();
-    Serial.print("Write status from server: ");
-    Serial.println(body);
-    if (body.startsWith("WRITE:")) {
-      String t = body.substring(6);
-      pendingWriteText = t;
-      writePending = true;
-      Serial.print("Write armed with text: ");
-      Serial.println(pendingWriteText);
-    }
-  }
-  http.end();
-}
 
 void drawParkingFull() {
   u8g2.clearBuffer();
@@ -432,6 +404,22 @@ void setup() {
 unsigned long lastSlotUpdate = 0;
 
 void loop() {
+
+  // ⏱️ Auto-exit write mode after timeout
+  if (writePending && millis() - writeModeStart > WRITE_TIMEOUT_MS) {
+    Serial.println("WRITE MODE TIMEOUT → exiting");
+    writePending = false;
+    pendingWriteText = "";
+
+    // optional: notify backend
+    WiFiClientSecure client;
+    client.setInsecure();
+    HTTPClient http;
+    http.begin(client, "https://" + serverIP + "/api/rfid/clear");
+    http.POST("");
+    http.end();
+  }
+
   // 1) Periodically update slot 1 & 2 and redraw parking info when idle
   unsigned long now = millis();
   if (now - lastSlotUpdate >= 500) {  // every 500 ms
@@ -524,4 +512,39 @@ void loop() {
   sendScanToServer(uidStr, text, didWrite);
 
   delay(500);  // small delay so it doesn't spam
+}
+void checkWriteFromServer() {
+  if (WiFi.status() != WL_CONNECTED) return;
+  if (writePending) return;
+
+  WiFiClientSecure client;
+  client.setInsecure();
+
+  HTTPClient http;
+  String url = "https://" + serverIP + "/api/rfid/pending";
+
+  http.begin(client, url);
+  int code = http.GET();
+
+  if (code == 200) {
+    String body = http.getString();
+
+    if (body.startsWith("WRITE:")) {
+      pendingWriteText = body.substring(6);
+      writePending = true;
+      writeModeStart = millis();
+      Serial.print("WRITE MODE ENABLED → ");
+      Serial.println(pendingWriteText);
+    }
+    if (body == "NONE") {
+  if (writePending) {
+    Serial.println("WRITE MODE CANCELLED FROM UI");
+    writePending = false;
+    pendingWriteText = "";
+  }
+}
+
+  }
+
+  http.end();
 }

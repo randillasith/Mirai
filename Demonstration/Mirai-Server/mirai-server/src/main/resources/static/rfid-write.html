@@ -82,10 +82,25 @@
 
     <script>
         async function cancelWrite() {
-            await fetch('/api/rfid/cancel', { method: 'POST' });
-            document.getElementById("status").innerText = "Write mode cancelled";
+            const statusEl = document.getElementById("status");
+            try {
+                const res = await fetch('/api/rfid/cancel', { method: 'POST' });
+
+                if (!res.ok) {
+                    statusEl.textContent = "Cancel failed (HTTP " + res.status + ")";
+                    statusEl.className = "status error";
+                    return;
+                }
+
+                statusEl.textContent = "Write mode cancelled";
+                statusEl.className = "status success";
+            } catch (e) {
+                statusEl.textContent = "Server error";
+                statusEl.className = "status error";
+            }
         }
     </script>
+
 
 
     <div id="status" class="status"></div>

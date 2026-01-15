@@ -9,6 +9,14 @@
 unsigned long writeModeStart = 0;
 const unsigned long WRITE_TIMEOUT_MS = 15000;  // 40 seconds
 
+// ---------------- MQ-2 & BUZZER ----------------
+#define MQ2_PIN 35        // ANALOG pin (ESP32 ADC)
+#define BUZZER_PIN 32    // Any free GPIO
+
+#define SMOKE_THRESHOLD 1800  // tune this after testing
+bool sirenPlayed = false;
+
+
 // ---------------- RFID PINS ----------------
 #define SS_PIN 5   // RC522 SDA/SS
 #define RST_PIN 4  // RC522 RST
@@ -16,12 +24,25 @@ const unsigned long WRITE_TIMEOUT_MS = 15000;  // 40 seconds
 MFRC522 rfid(SS_PIN, RST_PIN);
 MFRC522::MIFARE_Key key;
 
+int sirenFreq = 800;
+bool sirenUp = true;
+unsigned long lastSirenUpdate = 0;
+bool fireDetected = false;
+unsigned long fireClearStart = 0;
+const unsigned long FIRE_CLOSE_DELAY = 5000; // 5 seconds
+
+const int SIREN_MIN = 700;
+const int SIREN_MAX = 1600;
+const int SIREN_STEP = 15;        
+const unsigned long SIREN_MS = 5; 
+
+
 // ---------------- WIFI ----------------
 const char* ssid = "mirai";
 const char* password = "11111112";
 
 // IP of your PC where Java server runs
-String serverIP = "mirai.cyanworks.org";  // <= CHANGE IF NEEDED
+String serverIP = "mirai.cyanworks.org";  // <= Server
 
 byte blockNumber = 1;  // RFID data block
 
@@ -74,6 +95,35 @@ long readDistanceCm(int trigPin, int echoPin) {
   long distance = duration * 0.0343 / 2;  // sound speed ~343 m/s
   return distance;
 }
+
+unsigned long lastFireReport = 0;
+const unsigned long FIRE_REPORT_INTERVAL_MS = 5000; // send update every 5s while active
+
+void sendFireToServer(bool active, int gasValue, const char* reason) {
+  if (WiFi.status() != WL_CONNECTED) return;
+
+  WiFiClientSecure client;
+  client.setInsecure();
+
+  HTTPClient http;
+
+  // Example: https://mirai.cyanworks.org/api/fire?state=1&gas=2100&reason=MQ2
+  String url = "https://" + serverIP +
+               "/api/fire?state=" + String(active ? 1 : 0) +
+               "&gas=" + String(gasValue) +
+               "&reason=" + String(reason);
+
+  Serial.print("Fire API: ");
+  Serial.println(url);
+
+  http.begin(client, url);
+  int code = http.GET();
+  Serial.print("Fire HTTP code: ");
+  Serial.println(code);
+
+  http.end();
+}
+
 
 // Send slot status to server: /api/slot?slot=1&occ=0/1
 void sendSlotToServer(int slot, bool occ) {
@@ -259,7 +309,7 @@ void sendScanToServer(const String& uid, const String& text, bool isWrite) {
   Serial.print("Request: ");
   Serial.println(url);
 
-  http.begin(url);
+  http.begin(client,url);
   int httpCode = http.GET();
   Serial.print("HTTP response code: ");
   Serial.println(httpCode);
@@ -346,6 +396,79 @@ void sendScanToServer(const String& uid, const String& text, bool isWrite) {
   http.end();
 }
 
+void emergencySirenContinuous() {
+  unsigned long now = millis();
+  if (now - lastSirenUpdate < SIREN_MS) return;
+  lastSirenUpdate = now;
+
+  tone(BUZZER_PIN, sirenFreq);
+
+  if (sirenUp) {
+    sirenFreq += SIREN_STEP;
+    if (sirenFreq >= SIREN_MAX) sirenUp = false;
+  } else {
+    sirenFreq -= SIREN_STEP;
+    if (sirenFreq <= SIREN_MIN) sirenUp = true;
+  }
+}
+
+
+void checkFire() {
+  int gasValue = analogRead(MQ2_PIN);
+  unsigned long now = millis();
+
+  // FIRE PRESENT
+  if (gasValue > SMOKE_THRESHOLD) {
+
+    if (!fireDetected) {
+      Serial.println("FIRE DETECTED");
+      fireDetected = true;
+      fireClearStart = 0;
+
+      drawFireAlert();
+      gateServo.write(GATE_OPEN_ANGLE);
+
+      // report fire started
+      sendFireToServer(true, gasValue, "MQ2_START");
+      lastFireReport = now;
+    }
+
+    // periodic “still active” report (optional but useful)
+    if (now - lastFireReport >= FIRE_REPORT_INTERVAL_MS) {
+      sendFireToServer(true, gasValue, "MQ2_ACTIVE");
+      lastFireReport = now;
+    }
+
+    emergencySirenContinuous();
+  }
+
+  // SMOKE CLEARED
+  else {
+
+    noTone(BUZZER_PIN);
+    sirenFreq = SIREN_MIN;
+    sirenUp = true;
+
+    if (fireDetected && fireClearStart == 0) {
+      Serial.println("Smoke cleared, starting close timer");
+      fireClearStart = now;
+    }
+
+    if (fireDetected &&
+        fireClearStart > 0 &&
+        (now - fireClearStart >= FIRE_CLOSE_DELAY)) {
+
+      Serial.println("Closing gate after fire");
+      gateServo.write(GATE_CLOSED_ANGLE);
+
+      fireDetected = false;
+      fireClearStart = 0;
+
+      // report fire cleared
+      sendFireToServer(false, gasValue, "MQ2_CLEAR");
+    }
+  }
+}
 
 
 
@@ -371,6 +494,11 @@ void setup() {
   // OLED
   Wire.begin(21, 22);
   u8g2.begin();
+
+  pinMode(MQ2_PIN, INPUT);
+    pinMode(BUZZER_PIN, OUTPUT);
+noTone(BUZZER_PIN);
+
 
   // ULTRASONIC pin modes
   pinMode(SLOT1_TRIG_PIN, OUTPUT);
@@ -400,12 +528,18 @@ void setup() {
   drawParkingScreen();
 }
 
+
+
 // ---------------- LOOP ----------------
 unsigned long lastSlotUpdate = 0;
 
 void loop() {
 
-  // ⏱️ Auto-exit write mode after timeout
+  //FIRE SAFETY CHECK
+  checkFire();
+
+
+  // Auto-exit write mode after timeout
   if (writePending && millis() - writeModeStart > WRITE_TIMEOUT_MS) {
     Serial.println("WRITE MODE TIMEOUT → exiting");
     writePending = false;
@@ -422,21 +556,31 @@ void loop() {
 
   // 1) Periodically update slot 1 & 2 and redraw parking info when idle
   unsigned long now = millis();
-  if (now - lastSlotUpdate >= 500) {  // every 500 ms
-    lastSlotUpdate = now;
-    updateSlot(1, SLOT1_TRIG_PIN, SLOT1_ECHO_PIN, slot1Occ);
-    updateSlot(2, SLOT2_TRIG_PIN, SLOT2_ECHO_PIN, slot2Occ);
-    drawParkingScreen();
-  }
+  if (!fireDetected && now - lastSlotUpdate >= 500) {
+  lastSlotUpdate = now;
+  updateSlot(1, SLOT1_TRIG_PIN, SLOT1_ECHO_PIN, slot1Occ);
+  updateSlot(2, SLOT2_TRIG_PIN, SLOT2_ECHO_PIN, slot2Occ);
+  drawParkingScreen();
+}
 
-  // 2) Poll server for pending write (if you ever implement /api/getWrite)
+
+  // Poll server for pending write
   checkWriteFromServer();
+
+  // Check for card
+  //  FIRE ACTIVE → RFID DISABLED
+  if (fireDetected) {
+    Serial.println("FIRE ACTIVE → RFID DISABLED");
+    delay(50);
+    return;
+  }
 
   // 3) Check for card
   if (!rfid.PICC_IsNewCardPresent() || !rfid.PICC_ReadCardSerial()) {
     delay(20);
     return;
   }
+
 
   String uidStr = uidToString();
   Serial.print("Card UID: ");
@@ -509,10 +653,27 @@ void loop() {
   rfid.PCD_StopCrypto1();
 
   // 4) Send result to server
-  sendScanToServer(uidStr, text, didWrite);
+  //sendScanToServer(uidStr, text, didWrite);
 
-  delay(500);  // small delay so it doesn't spam
+  if (!fireDetected) {
+  sendScanToServer(uidStr, text, didWrite);
+  } else {
+    Serial.println("Scan blocked due to fire");
+  }
+
+
+  delay(5);  // small delay so it doesn't spam
 }
+
+void drawFireAlert() {
+  u8g2.clearBuffer();
+  u8g2.setFont(u8g2_font_ncenB14_tr);
+  u8g2.setFontPosCenter();
+  u8g2.drawStr((128 - u8g2.getStrWidth("FIRE")) / 2, 45, "FIRE");
+  u8g2.drawStr((128 - u8g2.getStrWidth("ALERT")) / 2, 75, "ALERT");
+  u8g2.sendBuffer();
+}
+
 void checkWriteFromServer() {
   if (WiFi.status() != WL_CONNECTED) return;
   if (writePending) return;

@@ -6,6 +6,9 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.*;
 import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+
 
 @RestController
 @RequestMapping("/api")
@@ -25,6 +28,15 @@ public class StatusController {
 
         // active vehicles
         List<Map<String, Object>> active = new ArrayList<>();
+
+        Map<String, Object> fire = new HashMap<>();
+        fire.put("active", ParkingStore.fireActive);
+        fire.put("gas", ParkingStore.fireGas);
+        fire.put("reason", ParkingStore.fireReason);
+        fire.put("device", ParkingStore.fireDevice);
+        fire.put("lastUpdate", String.valueOf(ParkingStore.fireLastUpdate));
+        res.put("fire", fire);
+
 
         for (Session s : ParkingStore.activeSessions.values()) {
             long sec = Duration

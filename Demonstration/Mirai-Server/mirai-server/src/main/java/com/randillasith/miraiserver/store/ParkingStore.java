@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+
 public class ParkingStore {
 
     // Active parking sessions (uid -> session)
@@ -15,6 +16,14 @@ public class ParkingStore {
     public static final Map<String, Session> activeSessions = new ConcurrentHashMap<>();
     public static Map<String, LocalDateTime> activeBookings = new ConcurrentHashMap<>();
     public static volatile String pendingWriteVehicle = null;
+
+
+    // Fire status
+    public static volatile boolean fireActive = false;
+    public static volatile int fireGas = 0;
+    public static volatile String fireReason = "";
+    public static volatile String fireDevice = "";
+    public static volatile LocalDateTime fireLastUpdate = null;
 
 
     // Parking slots

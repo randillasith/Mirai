@@ -70,7 +70,7 @@ public class AdminController {
         public void clearPendingWrite() {
             ParkingStore.pendingWriteVehicle = null;
         }
-        @PostMapping("/api/rfid/cancel")
+        @PostMapping("/rfid/cancel")
         public void cancelWrite() {
             ParkingStore.pendingWriteVehicle = null;
         }

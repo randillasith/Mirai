@@ -148,7 +148,36 @@
 </head>
 
 <body class="min-h-screen">
-    <!-- Main Dashboard -->
+
+<!-- FIRE MODAL -->
+<div id="fire-modal" class="hidden fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+    <div class="bg-white rounded-xl p-6 w-[92%] max-w-md">
+        <div class="flex items-center justify-between mb-3">
+            <h3 class="text-lg font-semibold text-red-700">
+                <i class="las la-fire mr-2"></i>FIRE ALERT
+            </h3>
+            <button onclick="closeFireModal()" class="text-slate-500 hover:text-slate-700">
+                <i class="las la-times text-xl"></i>
+            </button>
+        </div>
+
+        <div class="text-sm text-slate-700 space-y-2">
+            <p><b>Status:</b> <span id="fire-modal-status">ACTIVE</span></p>
+            <p><b>Gas:</b> <span id="fire-modal-gas">--</span></p>
+            <p><b>Reason:</b> <span id="fire-modal-reason">--</span></p>
+            <p><b>Last update:</b> <span id="fire-modal-time">--</span></p>
+            <p><b>Device:</b> <span id="fire-modal-device">--</span></p>
+        </div>
+
+        <div class="mt-5 flex gap-2 justify-end">
+            <button onclick="ackFireUI()" class="px-4 py-2 rounded-lg bg-red-600 text-white">
+                Acknowledge
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Main Dashboard -->
     <div id="dashboard-page" class="min-h-screen">
         <!-- Header -->
         <header class="header-gradient text-white">
@@ -166,6 +195,14 @@
 
                     <div class="flex items-center gap-6">
                         <div class="hidden md:flex items-center gap-4">
+                            <!-- Fire indicator (hidden until fire is active) -->
+                            <div id="fire-indicator"
+                                 class="hidden cursor-pointer select-none"
+                                 title="Fire status"
+                                 onclick="openFireModal()">
+                                <i class="las la-fire text-2xl"></i>
+                            </div>
+
                             <div class="text-right">
                                 <p class="text-sm text-white/80">Current Rate</p>
                                 <p class="font-semibold text-lg">Rs.<span id="rate-display">0.01</span>/sec</p>
@@ -856,6 +893,8 @@
             try {
                 const res = await fetch('/api/status');
                 const data = await res.json();
+                setFireUI(data.fire);
+
 
                 // Update slot status
                 updateSlotStatus(1, data.slot1State);
@@ -1081,6 +1120,62 @@
                 showToast('Error deleting vehicle', 'error');
             }
         }
+
+        let lastFireActive = null;
+        let fireAcked = false;
+
+        function openFireModal() {
+            document.getElementById('fire-modal')?.classList.remove('hidden');
+        }
+        function closeFireModal() {
+            document.getElementById('fire-modal')?.classList.add('hidden');
+        }
+        function ackFireUI() {
+            fireAcked = true;
+            closeFireModal();
+        }
+
+        function setFireUI(fire) {
+            const icon = document.getElementById('fire-indicator');
+            if (!icon) return;
+
+            const active = !!fire?.active;
+
+            // Show/Hide indicator
+            if (active) {
+                icon.classList.remove('hidden');
+                icon.classList.add('text-red-600', 'animate-pulse');
+
+                // Keep indicator until fire ends (your requirement)
+                document.title = '🔥 FIRE ALERT - Mirai';
+
+                // Update modal values continuously
+                document.getElementById('fire-modal-status').textContent = 'ACTIVE';
+                document.getElementById('fire-modal-gas').textContent = fire.gas ?? '--';
+                document.getElementById('fire-modal-reason').textContent = fire.reason ?? '--';
+                document.getElementById('fire-modal-time').textContent = fire.lastUpdate ?? '--';
+                document.getElementById('fire-modal-device').textContent = fire.device ?? '--';
+
+            } else {
+                // Fire gone -> everything disappears and resets
+                icon.classList.add('hidden');
+                icon.classList.remove('text-red-600', 'animate-pulse');
+                document.title = 'Mirai RFID Parking System';
+
+                fireAcked = false;         // next fire event can show modal again
+                closeFireModal();          // ensure modal closes when cleared
+            }
+
+            // Open modal only once when fire becomes active (no spam)
+            if (lastFireActive === false && active && !fireAcked) {
+                openFireModal();
+            }
+
+            // Initialize lastFireActive on first run
+            if (lastFireActive === null) lastFireActive = active;
+            else lastFireActive = active;
+        }
+
 
         async function loadAdminRate() {
             try {

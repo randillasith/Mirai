@@ -1,19 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mirai RFID Parking System</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Line Awesome Icons -->
-    <link rel="stylesheet"
-        href="https://maxst.icons8.com/vue-static/landings/line-awesome/line-awesome/1.3.0/css/line-awesome.min.css">
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <!-- Google Fonts -->
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
     <style>
         :root {
             --primary: #4f46e5;
@@ -22,1365 +20,1121 @@
             --success: #10b981;
             --warning: #f59e0b;
             --danger: #ef4444;
-            --light-bg: #f8fafc;
-            --card-bg: #ffffff;
-            --text-primary: #1e293b;
-            --text-secondary: #64748b;
+            --dark: #1e293b;
+            --light: #f8fafc;
         }
 
         body {
             font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-            color: var(--text-primary);
-            min-height: 100vh;
+            background-color: #f9fafb;
+            color: var(--dark);
+            padding-bottom: 60px; /* For mobile bottom nav */
         }
 
-        .header-gradient {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+        /* Custom Card Styles */
+        .card-custom {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+            transition: transform 0.2s;
         }
 
-        .card-shadow {
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-        }
-
-        .stat-card {
-            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-        }
-
-        .slot-card {
-            transition: all 0.3s ease;
-        }
-
-        .slot-card:hover {
+        .card-custom:hover {
             transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
         }
 
-        .status-badge {
+        /* Status Badges */
+        .badge-status {
+            font-size: 0.75rem;
             padding: 4px 12px;
             border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: 600;
+            font-weight: 500;
         }
 
-        .status-free {
-            background: rgba(16, 185, 129, 0.1);
+        .badge-free {
+            background-color: rgba(16, 185, 129, 0.1);
             color: var(--success);
         }
 
-        .status-occupied {
-            background: rgba(239, 68, 68, 0.1);
+        .badge-occupied {
+            background-color: rgba(239, 68, 68, 0.1);
             color: var(--danger);
         }
 
-        .btn-primary {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
-            color: white;
-            transition: all 0.3s ease;
+        .badge-booked {
+            background-color: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
         }
 
-        .btn-primary:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
-        }
-
-        .nav-link {
-            color: var(--text-secondary);
-            transition: all 0.3s ease;
-        }
-
-        .nav-link:hover {
-            color: var(--primary);
-        }
-
-        .nav-link.active {
-            color: var(--primary);
-            background: rgba(79, 70, 229, 0.1);
-        }
-
-        .table-row:hover {
-            background: #f8fafc;
-        }
-
-        .animate-pulse {
-            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        /* Fire Alert */
+        .fire-alert {
+            animation: pulse 2s infinite;
         }
 
         @keyframes pulse {
-
-            0%,
-            100% {
-                opacity: 1;
-            }
-
-            50% {
-                opacity: 0.5;
-            }
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
         }
 
-        /* Custom scrollbar */
-        ::-webkit-scrollbar {
-            width: 6px;
+        /* Parking Slot Cards */
+        .slot-card {
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.3s;
         }
 
-        ::-webkit-scrollbar-track {
-            background: #f1f5f9;
+        .slot-card:hover {
+            border-color: var(--primary);
         }
 
-        ::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
+        .slot-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        /* Progress Bar */
+        .slot-progress {
+            height: 6px;
             border-radius: 3px;
+            background-color: #e2e8f0;
+            overflow: hidden;
         }
 
-        ::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
+        .slot-progress-bar {
+            height: 100%;
+            transition: width 0.3s;
         }
 
-        .glass-effect {
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(10px);
-        }
-        .status-booked {
-            background: rgba(245, 158, 11, 0.15);
-            color: #f59e0b;
+        /* Bottom Navigation for Mobile */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            border-top: 1px solid #e2e8f0;
+            z-index: 1000;
+            padding: 8px 0;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
         }
 
+        .bottom-nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            color: #64748b;
+            padding: 4px;
+            transition: all 0.3s;
+            border-radius: 8px;
+        }
+
+        .bottom-nav-item.active {
+            color: var(--primary);
+            background-color: rgba(79, 70, 229, 0.1);
+        }
+
+        .bottom-nav-item i {
+            font-size: 1.25rem;
+            margin-bottom: 2px;
+        }
+
+        .bottom-nav-item span {
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        /* Table Responsive */
+        .table-responsive {
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        /* Modal Custom */
+        .modal-custom .modal-content {
+            border-radius: 12px;
+            border: none;
+        }
+
+        /* Button Styles */
+        .btn-primary-custom {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .btn-primary-custom:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+            color: white;
+        }
+
+        /* Responsive Font Sizes */
+        @media (max-width: 768px) {
+            .display-5 {
+                font-size: 1.5rem;
+            }
+
+            h2 {
+                font-size: 1.25rem;
+            }
+
+            .card-body {
+                padding: 1rem;
+            }
+        }
+
+        /* Loading States */
+        .loading {
+            opacity: 0.7;
+            pointer-events: none;
+        }
+
+        /* Toast Notification */
+        .toast-container {
+            z-index: 1050;
+        }
     </style>
 </head>
 
-<body class="min-h-screen">
+<body>
+<!-- Top Header -->
+<header class="bg-primary text-white py-3">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center">
+                <div class="slot-icon bg-white bg-opacity-25 me-3">
+                    <i class="bi bi-p-square text-white"></i>
+                </div>
+                <div>
+                    <h1 class="h4 mb-0 fw-bold">Mirai RFID Parking</h1>
+                    <small class="opacity-75">Smart Parking Management</small>
+                </div>
+            </div>
 
-<!-- FIRE MODAL -->
-<div id="fire-modal" class="hidden fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-    <div class="bg-white rounded-xl p-6 w-[92%] max-w-md">
-        <div class="flex items-center justify-between mb-3">
-            <h3 class="text-lg font-semibold text-red-700">
-                <i class="las la-fire mr-2"></i>FIRE ALERT
-            </h3>
-            <button onclick="closeFireModal()" class="text-slate-500 hover:text-slate-700">
-                <i class="las la-times text-xl"></i>
-            </button>
+            <div class="d-none d-md-flex align-items-center gap-3">
+                <!-- Fire Alert Indicator -->
+                <div id="fire-indicator" class="fire-alert d-none" style="cursor: pointer;" onclick="openFireModal()">
+                    <i class="bi bi-fire text-warning fs-4"></i>
+                </div>
+
+                <div class="text-end">
+                    <small class="opacity-75">Current Rate</small>
+                    <div class="fw-bold">Rs.<span id="rate-display">0.01</span>/sec</div>
+                </div>
+            </div>
         </div>
+    </div>
+</header>
 
-        <div class="text-sm text-slate-700 space-y-2">
-            <p><b>Status:</b> <span id="fire-modal-status">ACTIVE</span></p>
-            <p><b>Gas:</b> <span id="fire-modal-gas">--</span></p>
-            <p><b>Reason:</b> <span id="fire-modal-reason">--</span></p>
-            <p><b>Last update:</b> <span id="fire-modal-time">--</span></p>
-            <p><b>Device:</b> <span id="fire-modal-device">--</span></p>
-        </div>
-
-        <div class="mt-5 flex gap-2 justify-end">
-            <button onclick="ackFireUI()" class="px-4 py-2 rounded-lg bg-red-600 text-white">
-                Acknowledge
-            </button>
+<!-- Mobile Stats Bar -->
+<div class="d-md-none bg-white py-2 border-bottom">
+    <div class="container">
+        <div class="row g-2 text-center">
+            <div class="col-4">
+                <small class="text-muted d-block">Available</small>
+                <span class="fw-bold text-success" id="available-slots-mobile">2</span>
+            </div>
+            <div class="col-4">
+                <small class="text-muted d-block">Active</small>
+                <span class="fw-bold" id="active-count-mobile">0</span>
+            </div>
+            <div class="col-4">
+                <small class="text-muted d-block">Rate</small>
+                <span class="fw-bold">Rs.<span id="rate-mobile">0.01</span>/s</span>
+            </div>
         </div>
     </div>
 </div>
 
-<!-- Main Dashboard -->
-    <div id="dashboard-page" class="min-h-screen">
-        <!-- Header -->
-        <header class="header-gradient text-white">
-            <div class="container mx-auto px-4 py-4">
-                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div class="flex items-center gap-3">
-                        <div class="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center">
-                            <i class="las la-parking text-2xl"></i>
-                        </div>
-                        <div>
-                            <h1 class="text-2xl font-bold">Mirai RFID Parking</h1>
-                            <p class="text-white/80 text-sm">Smart Parking Management System</p>
-                        </div>
-                    </div>
-
-                    <div class="flex items-center gap-6">
-                        <div class="hidden md:flex items-center gap-4">
-                            <!-- Fire indicator (hidden until fire is active) -->
-                            <div id="fire-indicator"
-                                 class="hidden cursor-pointer select-none"
-                                 title="Fire status"
-                                 onclick="openFireModal()">
-                                <i class="las la-fire text-2xl"></i>
+<!-- Main Content -->
+<main class="container py-4">
+    <!-- Dashboard Page -->
+    <div id="dashboard-page">
+        <!-- Stats Overview -->
+        <div class="row g-3 mb-4">
+            <div class="col-6 col-md-3">
+                <div class="card card-custom h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <small class="text-muted">Total Slots</small>
+                                <h4 class="fw-bold mb-0">2</h4>
                             </div>
-
-                            <div class="text-right">
-                                <p class="text-sm text-white/80">Current Rate</p>
-                                <p class="font-semibold text-lg">Rs.<span id="rate-display">0.01</span>/sec</p>
-                            </div>
-                            <div class="h-8 w-px bg-white/30"></div>
-                            <div class="text-right">
-                                <p class="text-sm text-white/80">Active Vehicles</p>
-                                <p class="font-semibold text-lg"><span id="active-count-display">0</span></p>
+                            <div class="slot-icon bg-primary bg-opacity-10 text-primary">
+                                <i class="bi bi-p-square"></i>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </header>
 
-        <!-- Navigation -->
-        <nav class="glass-effect border-b">
-            <div class="container mx-auto px-4">
-                <div class="flex space-x-1 py-2">
-                    <a href="#" onclick="showPage('dashboard')"
-                        class="nav-link active px-4 py-3 rounded-lg flex items-center gap-2 font-medium">
-                        <i class="las la-tachometer-alt"></i>
-                        Dashboard
-                    </a>
-                    <a href="#" onclick="showPage('admin')"
-                        class="nav-link px-4 py-3 rounded-lg flex items-center gap-2 font-medium">
-                        <i class="las la-cog"></i>
-                        Admin Panel
-                    </a>
-                    <a href="#" onclick="showPage('reports')"
-                        class="nav-link px-4 py-3 rounded-lg flex items-center gap-2 font-medium">
-                        <i class="las la-chart-bar"></i>
-                        Reports
-                    </a>
-                </div>
-            </div>
-        </nav>
-
-        <!-- Main Content -->
-        <main class="container mx-auto px-4 py-6">
-            <!-- Stats Overview -->
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                <div class="stat-card rounded-xl p-4 card-shadow">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-sm text-slate-600">Total Slots</p>
-                            <p class="text-2xl font-bold text-slate-800">2</p>
-                        </div>
-                        <div class="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
-                            <i class="las la-parking text-blue-600 text-lg"></i>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="stat-card rounded-xl p-4 card-shadow">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-sm text-slate-600">Available</p>
-                            <p class="text-2xl font-bold text-emerald-600" id="available-slots">2</p>
-                        </div>
-                        <div class="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center">
-                            <i class="las la-check-circle text-emerald-600 text-lg"></i>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- <div class="stat-card rounded-xl p-4 card-shadow">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm text-slate-600">Today's Revenue</p>
-                        <p class="text-2xl font-bold text-slate-800">Rs.<span id="today-revenue">0.00</span></p>
-                    </div>
-                    <div class="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center">
-                        <i class="fa-solid fa-rupee-sign"></i>
-                    </div>
-                </div>
-            </div> -->
-
-                <div class="stat-card rounded-xl p-4 card-shadow">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-sm text-slate-600">Active Now</p>
-                            <p class="text-2xl font-bold text-slate-800"><span id="active-now">0</span></p>
-                        </div>
-                        <div class="w-10 h-10 rounded-lg bg-violet-100 flex items-center justify-center">
-                            <i class="las la-car text-violet-600 text-lg"></i>
+            <div class="col-6 col-md-3">
+                <div class="card card-custom h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <small class="text-muted">Available</small>
+                                <h4 class="fw-bold text-success mb-0" id="available-slots">2</h4>
+                            </div>
+                            <div class="slot-icon bg-success bg-opacity-10 text-success">
+                                <i class="bi bi-check-circle"></i>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <!-- Left Column -->
-                <div class="lg:col-span-2 space-y-6">
-                    <!-- Parking Slots -->
-                    <div class="bg-white rounded-xl p-6 card-shadow">
-                        <div class="flex items-center justify-between mb-6">
-                            <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
-                                    <i class="las la-parking text-blue-600 text-xl"></i>
+            <div class="col-6 col-md-3">
+                <div class="card card-custom h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <small class="text-muted">Active Now</small>
+                                <h4 class="fw-bold mb-0" id="active-now">0</h4>
+                            </div>
+                            <div class="slot-icon bg-info bg-opacity-10 text-info">
+                                <i class="bi bi-car-front"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-6 col-md-3">
+                <div class="card card-custom h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <small class="text-muted">Today's Revenue</small>
+                                <h4 class="fw-bold mb-0">Rs.<span id="today-revenue">0.00</span></h4>
+                            </div>
+                            <div class="slot-icon bg-warning bg-opacity-10 text-warning">
+                                <i class="bi bi-currency-rupee"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Parking Slots -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card card-custom">
+                    <div class="card-header bg-white border-0 pb-0">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="d-flex align-items-center">
+                                <div class="slot-icon bg-primary bg-opacity-10 text-primary me-3">
+                                    <i class="bi bi-p-square"></i>
                                 </div>
-                                <h2 class="text-xl font-semibold text-slate-800">Parking Slots Status</h2>
+                                <div>
+                                    <h5 class="fw-bold mb-1">Parking Slots Status</h5>
+                                    <small class="text-muted">Real-time updates</small>
+                                </div>
                             </div>
-                            <div class="text-sm text-slate-500">Updated just now</div>
+                            <span class="text-muted" id="last-updated">Just now</span>
                         </div>
-
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
                             <!-- Slot 1 -->
-                            <div id="slot1-card"
-                                class="slot-card bg-white border border-slate-200 rounded-xl p-5 hover:border-blue-300">
-                                <div class="flex items-center justify-between mb-4">
-                                    <div class="flex items-center gap-3">
-                                        <div id="slot1-icon"
-                                            class="w-12 h-12 rounded-lg bg-emerald-100 flex items-center justify-center">
-                                            <i class="las la-parking text-emerald-600 text-2xl"></i>
+                            <div class="col-12 col-md-6">
+                                <div id="slot1-card" class="slot-card card border h-100">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-center mb-3">
+                                            <div class="d-flex align-items-center">
+                                                <div id="slot1-icon" class="slot-icon bg-success bg-opacity-10 text-success me-3">
+                                                    <i class="bi bi-p-square"></i>
+                                                </div>
+                                                <div>
+                                                    <h6 class="fw-bold mb-0">Slot 1</h6>
+                                                    <small class="text-muted">Ground Floor</small>
+                                                </div>
+                                            </div>
+                                            <span id="slot1-status" class="badge-status badge-free">FREE</span>
                                         </div>
-                                        <div>
-                                            <h3 class="font-semibold text-slate-800">Slot 1</h3>
-                                            <p class="text-sm text-slate-500">Ground Floor</p>
+                                        <p id="slot1-details" class="text-muted small mb-3">Available for parking</p>
+                                        <div class="slot-progress">
+                                            <div id="slot1-timer" class="slot-progress-bar bg-success" style="width: 0%"></div>
                                         </div>
-                                    </div>
-                                    <span id="slot1-status" class="status-badge status-free">FREE</span>
-                                </div>
-                                <div class="space-y-2">
-                                    <div class="text-center py-2">
-                                        <p id="slot1-details" class="text-slate-600">Available for parking</p>
-                                    </div>
-                                    <div class="h-2 bg-slate-100 rounded-full overflow-hidden">
-                                        <div id="slot1-timer" class="h-full bg-emerald-500 w-0"></div>
                                     </div>
                                 </div>
                             </div>
 
                             <!-- Slot 2 -->
-                            <div id="slot2-card"
-                                class="slot-card bg-white border border-slate-200 rounded-xl p-5 hover:border-blue-300">
-                                <div class="flex items-center justify-between mb-4">
-                                    <div class="flex items-center gap-3">
-                                        <div id="slot2-icon"
-                                            class="w-12 h-12 rounded-lg bg-emerald-100 flex items-center justify-center">
-                                            <i class="las la-parking text-emerald-600 text-2xl"></i>
+                            <div class="col-12 col-md-6">
+                                <div id="slot2-card" class="slot-card card border h-100">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-center mb-3">
+                                            <div class="d-flex align-items-center">
+                                                <div id="slot2-icon" class="slot-icon bg-success bg-opacity-10 text-success me-3">
+                                                    <i class="bi bi-p-square"></i>
+                                                </div>
+                                                <div>
+                                                    <h6 class="fw-bold mb-0">Slot 2</h6>
+                                                    <small class="text-muted">Ground Floor</small>
+                                                </div>
+                                            </div>
+                                            <span id="slot2-status" class="badge-status badge-free">FREE</span>
                                         </div>
-                                        <div>
-                                            <h3 class="font-semibold text-slate-800">Slot 2</h3>
-                                            <p class="text-sm text-slate-500">Ground Floor</p>
+                                        <p id="slot2-details" class="text-muted small mb-3">Available for parking</p>
+                                        <div class="slot-progress">
+                                            <div id="slot2-timer" class="slot-progress-bar bg-success" style="width: 0%"></div>
                                         </div>
-                                    </div>
-                                    <span id="slot2-status" class="status-badge status-free">FREE</span>
-                                </div>
-                                <div class="space-y-2">
-                                    <div class="text-center py-2">
-                                        <p id="slot2-details" class="text-slate-600">Available for parking</p>
-                                    </div>
-                                    <div class="h-2 bg-slate-100 rounded-full overflow-hidden">
-                                        <div id="slot2-timer" class="h-full bg-emerald-500 w-0"></div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-
-                    <!-- Active Vehicles -->
-                    <div class="bg-white rounded-xl p-6 card-shadow">
-                        <div class="flex items-center justify-between mb-6">
-                            <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-lg bg-violet-100 flex items-center justify-center">
-                                    <i class="las la-car text-violet-600 text-xl"></i>
-                                </div>
-                                <h2 class="text-xl font-semibold text-slate-800">Active Vehicles</h2>
-                            </div>
-                            <span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium"
-                                id="active-count">0 vehicles</span>
-                        </div>
-
-                        <div class="overflow-hidden rounded-lg border border-slate-200">
-                            <table class="min-w-full">
-                                <thead class="bg-slate-50">
-                                    <tr>
-                                        <th class="py-3 px-4 text-left text-sm font-medium text-slate-700">Vehicle ID
-                                        </th>
-                                        <th class="py-3 px-4 text-left text-sm font-medium text-slate-700">Owner</th>
-                                        <th class="py-3 px-4 text-left text-sm font-medium text-slate-700">Duration</th>
-                                        <th class="py-3 px-4 text-left text-sm font-medium text-slate-700">Cost</th>
-                                        <th class="py-3 px-4 text-left text-sm font-medium text-slate-700">Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="active-vehicles-body" class="divide-y divide-slate-100">
-                                    <tr>
-                                        <td colspan="5" class="py-8 text-center text-slate-500">
-                                            <i class="las la-car text-3xl mb-3 block opacity-20"></i>
-                                            <p>No active vehicles in parking</p>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                    <div class="bg-white rounded-xl p-6 card-shadow">
-                        <h3 class="text-lg font-semibold mb-4">Book Parking Slot</h3>
-
-                        <input id="book-vehicle" placeholder="Vehicle ID (VH-002)"
-                               class="border px-3 py-2 rounded w-full mb-2">
-
-                        <select id="book-slot" class="border px-3 py-2 rounded w-full mb-2">
-                            <option value="1">Slot 1</option>
-                            <option value="2">Slot 2</option>
-                        </select>
-
-                        <button onclick="bookSlot()"
-                                class="btn-primary px-4 py-2 rounded">
-                            Book Slot
-                        </button>
-                    </div>
-
-                </div>
-
-
-                <!-- Quick Stats -->
-
-
-
-            </div>
-    </div>
-    </main>
-    </div>
-
-    <!-- Admin Panel -->
-    <div id="admin-page" class="min-h-screen hidden">
-        <!-- Header -->
-        <header class="bg-white border-b">
-            <div class="container mx-auto px-4 py-4">
-                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div class="flex items-center gap-3">
-                        <div class="w-12 h-12 rounded-xl bg-indigo-100 flex items-center justify-center">
-                            <i class="las la-cog text-indigo-600 text-2xl"></i>
-                        </div>
-                        <div>
-                            <h1 class="text-2xl font-bold text-slate-800">Vehicle Management</h1>
-                            <p class="text-slate-500 text-sm">Register and manage vehicle information</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </header>
-
-        <!-- Navigation -->
-        <nav class="bg-slate-50 border-b">
-            <div class="container mx-auto px-4">
-                <div class="flex space-x-1 py-2">
-                    <a href="#" onclick="showPage('dashboard')"
-                        class="px-4 py-3 rounded-lg flex items-center gap-2 font-medium text-slate-600 hover:text-indigo-600">
-                        <i class="las la-arrow-left"></i>
-                        Back to Dashboard
-                    </a>
-                    <a href="#" onclick="showPage('admin')"
-                        class="px-4 py-3 rounded-lg flex items-center gap-2 font-medium bg-indigo-100 text-indigo-600">
-                        <i class="las la-car"></i>
-                        Vehicle Management
-                    </a>
-                    <a href="#" onclick="showPage('reports')"
-                        class="px-4 py-3 rounded-lg flex items-center gap-2 font-medium text-slate-600 hover:text-indigo-600">
-                        <i class="las la-chart-bar"></i>
-                        Reports
-                    </a>
-                </div>
-            </div>
-        </nav>
-        <br>
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <div class="stat-card rounded-xl p-4 card-shadow">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm text-slate-600">Total Slots</p>
-                        <p class="text-2xl font-bold text-slate-800">2</p>
-                    </div>
-                    <div class="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
-                        <i class="las la-parking text-blue-600 text-lg"></i>
-                    </div>
-                </div>
-            </div>
-
-            <div class="stat-card rounded-xl p-4 card-shadow">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm text-slate-600">Available</p>
-                        <p class="text-2xl font-bold text-emerald-600" id="available-slots">2</p>
-                    </div>
-                    <div class="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center">
-                        <i class="las la-check-circle text-emerald-600 text-lg"></i>
-                    </div>
-                </div>
-            </div>
-
-            <div class="stat-card rounded-xl p-4 card-shadow">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm text-slate-600">Today's Revenue</p>
-                        <p class="text-2xl font-bold text-slate-800">Rs.<span id="today-revenue">0.00</span></p>
-                    </div>
-                    <div class="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center">
-                        <i class="fa-solid fa-rupee-sign"></i>
-                    </div>
-                </div>
-            </div>
-
-            <div class="stat-card rounded-xl p-4 card-shadow">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm text-slate-600">Active Now</p>
-                        <p class="text-2xl font-bold text-slate-800"><span id="active-now">0</span></p>
-                    </div>
-                    <div class="w-10 h-10 rounded-lg bg-violet-100 flex items-center justify-center">
-                        <i class="las la-car text-violet-600 text-lg"></i>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Main Content -->
-        <main class="container mx-auto px-4 py-6">
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <!-- Left Column -->
-                <div class="lg:col-span-2 space-y-6">
-                    <!-- Vehicle Registration -->
-                    <div class="bg-white rounded-xl p-6 card-shadow">
-                        <div class="flex items-center gap-3 mb-6">
-                            <div class="w-10 h-10 rounded-lg bg-indigo-100 flex items-center justify-center">
-                                <i class="las la-plus-circle text-indigo-600 text-xl"></i>
-                            </div>
-                            <h2 class="text-xl font-semibold text-slate-800">Register New Vehicle</h2>
+        <!-- Quick Actions & Active Vehicles -->
+        <div class="row">
+            <!-- Quick Booking -->
+            <div class="col-12 col-lg-4 mb-4 mb-lg-0">
+                <div class="card card-custom h-100">
+                    <div class="card-header bg-white border-0">
+                        <h5 class="fw-bold mb-0">Quick Booking</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label">Vehicle ID</label>
+                            <input type="text" id="book-vehicle" class="form-control" placeholder="VH-002">
                         </div>
+                        <div class="mb-3">
+                            <label class="form-label">Select Slot</label>
+                            <select id="book-slot" class="form-select">
+                                <option value="1">Slot 1</option>
+                                <option value="2">Slot 2</option>
+                            </select>
+                        </div>
+                        <button onclick="bookSlot()" class="btn btn-primary-custom w-100">
+                            <i class="bi bi-bookmark-check me-2"></i>Book Slot
+                        </button>
+                    </div>
+                </div>
+            </div>
 
-                        <div class="space-y-4">
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <label class="block text-sm font-medium text-slate-700 mb-2">Vehicle ID</label>
-                                    <input type="text" id="veh-id" placeholder="VH001" maxlength="10"
-                                        class="w-full border border-slate-300 rounded-lg px-4 py-3 text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-slate-700 mb-2">Owner Name</label>
-                                    <input type="text" id="owner-name" placeholder="John Doe"
-                                        class="w-full border border-slate-300 rounded-lg px-4 py-3 text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
-                                </div>
-                            </div>
-
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-2">Vehicle Type</label>
-                                <select id="vehicle-type"
-                                    class="w-full border border-slate-300 rounded-lg px-4 py-3 text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
-                                    <option value="car">Car</option>
-                                    <option value="bike">Motorcycle</option>
-                                    <option value="truck">Truck</option>
-                                    <option value="other">Other</option>
-                                </select>
-                            </div>
-
-                            <button onclick="addVehicle()"
-                                class="w-full btn-primary py-3 rounded-lg font-medium flex items-center justify-center gap-2">
-                                <i class="las la-save"></i>
-                                Add / Update Vehicle
-                            </button>
+            <!-- Active Vehicles -->
+            <div class="col-12 col-lg-8">
+                <div class="card card-custom h-100">
+                    <div class="card-header bg-white border-0">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="fw-bold mb-0">Active Vehicles</h5>
+                            <span class="badge bg-primary" id="active-count">0 vehicles</span>
                         </div>
                     </div>
-
-                    <!-- Registered Vehicles -->
-                    <div class="bg-white rounded-xl p-6 card-shadow">
-                        <div class="flex items-center justify-between mb-6">
-                            <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center">
-                                    <i class="las la-list-alt text-green-600 text-xl"></i>
-                                </div>
-                                <h2 class="text-xl font-semibold text-slate-800">Registered Vehicles</h2>
-                            </div>
-                            <span class="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-sm font-medium"
-                                id="registered-count">0 vehicles</span>
-                        </div>
-
-                        <div class="overflow-hidden rounded-lg border border-slate-200">
-                            <table class="min-w-full">
-                                <thead class="bg-slate-50">
-                                    <tr>
-                                        <th class="py-3 px-4 text-left text-sm font-medium text-slate-700">Vehicle ID
-                                        </th>
-                                        <th class="py-3 px-4 text-left text-sm font-medium text-slate-700">Owner</th>
-                                        <th class="py-3 px-4 text-left text-sm font-medium text-slate-700">Type</th>
-                                        <th class="py-3 px-4 text-left text-sm font-medium text-slate-700">Status</th>
-                                        <th class="py-3 px-4 text-left text-sm font-medium text-slate-700">Actions</th>
-                                    </tr>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                <tr>
+                                    <th>Vehicle ID</th>
+                                    <th>Owner</th>
+                                    <th>Duration</th>
+                                    <th>Cost</th>
+                                    <th>Status</th>
+                                </tr>
                                 </thead>
-                                <tbody id="vehicles-body" class="divide-y divide-slate-100">
-                                    <tr>
-                                        <td colspan="5" class="py-8 text-center">
-                                            <div class="flex flex-col items-center">
-                                                <div
-                                                    class="w-16 h-16 border-2 border-dashed border-slate-300 rounded-full flex items-center justify-center mb-3">
-                                                    <i class="las la-car text-slate-400 text-2xl"></i>
-                                                </div>
-                                                <p class="text-slate-500">Loading vehicles...</p>
-                                            </div>
-                                        </td>
-                                    </tr>
+                                <tbody id="active-vehicles-body">
+                                <tr>
+                                    <td colspan="5" class="text-center py-5 text-muted">
+                                        <i class="bi bi-car-front fs-1 opacity-25 mb-3 d-block"></i>
+                                        No active vehicles
+                                    </td>
+                                </tr>
                                 </tbody>
                             </table>
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
 
-                <!-- Right Column -->
-                <div class="space-y-6">
-                    <!-- System Settings -->
-                    <div class="bg-white rounded-xl p-6 card-shadow">
-                        <div class="flex items-center gap-3 mb-6">
-                            <div class="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center">
-                                <i class="las la-sliders-h text-amber-600 text-xl"></i>
-                            </div>
-                            <h2 class="text-xl font-semibold text-slate-800">System Settings</h2>
-                        </div>
-
-                        <div class="space-y-4">
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-2">Parking Rate (Rs. per
-                                    second)</label>
-                                <input type="number" id="admin-rate-input" step="0.01" min="0.01" value="0.01"
-                                    class="w-full border border-slate-300 rounded-lg px-4 py-3 text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
-                            </div>
-
-                            <button onclick="updateAdminRate()"
-                                class="w-full btn-primary py-3 rounded-lg font-medium flex items-center justify-center gap-2">
-                                <i class="las la-sync"></i>
-                                Update Rate
-                            </button>
-
-                            <div class="pt-4 border-t border-slate-200">
-                                <div class="flex items-center justify-between mb-2">
-                                    <span class="text-slate-700">Max Parking Duration</span>
-                                    <span class="font-semibold">24 hours</span>
-                                </div>
-                                <div class="flex items-center justify-between">
-                                    <span class="text-slate-700">Auto Cleanup</span>
-                                    <span
-                                        class="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">Enabled</span>
-                                </div>
-                            </div>
+    <!-- Admin Page -->
+    <div id="admin-page" class="d-none">
+        <!-- Vehicle Management -->
+        <div class="row">
+            <div class="col-12 col-lg-8">
+                <!-- Registered Vehicles -->
+                <div class="card card-custom mb-4">
+                    <div class="card-header bg-white border-0">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="fw-bold mb-0">Registered Vehicles</h5>
+                            <span class="badge bg-primary" id="registered-count">0 vehicles</span>
                         </div>
                     </div>
-
-                    <div class="bg-white rounded-xl p-6 card-shadow">
-                        <div class="flex items-center gap-3 mb-6">
-                            <div class="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center">
-                                <i class="las la-chart-line text-green-600 text-xl"></i>
-                            </div>
-                            <h2 class="text-xl font-semibold text-slate-800">Today's Overview</h2>
-                        </div>
-
-                        <div class="space-y-4">
-                            <div class="flex justify-between items-center">
-                                <div class="flex items-center gap-3">
-                                    <div class="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
-                                        <i class="las la-car text-blue-600"></i>
-                                    </div>
-                                    <span class="text-slate-600">Total Vehicles</span>
-                                </div>
-                                <span class="font-semibold text-slate-800" id="total-vehicles-today">0</span>
-                            </div>
-
-                            <div class="flex justify-between items-center">
-                                <div class="flex items-center gap-3">
-                                    <div class="w-8 h-8 rounded-lg bg-green-50 flex items-center justify-center">
-                                        <i class="las la-clock text-green-600"></i>
-                                    </div>
-                                    <span class="text-slate-600">Avg. Duration</span>
-                                </div>
-                                <span class="font-semibold text-slate-800" id="avg-duration">0s</span>
-                            </div>
-
-                            <div class="flex justify-between items-center">
-                                <div class="flex items-center gap-3">
-                                    <div class="w-8 h-8 rounded-lg bg-purple-50 flex items-center justify-center">
-                                        <i class="fa-light fa-circle-rupee text-purple-600"></i>
-                                    </div>
-                                    <span class="text-slate-600">Avg. Cost</span>
-                                </div>
-                                <span class="font-semibold text-slate-800">Rs.<span id="avg-cost">0.00</span></span>
-                            </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                <tr>
+                                    <th>Vehicle ID</th>
+                                    <th>Owner</th>
+                                    <th>Type</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                                </thead>
+                                <tbody id="vehicles-body">
+                                <tr>
+                                    <td colspan="5" class="text-center py-5">
+                                        <div class="spinner-border text-primary" role="status">
+                                            <span class="visually-hidden">Loading...</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
-
                 </div>
             </div>
-        </main>
+
+            <!-- Add Vehicle Form -->
+            <div class="col-12 col-lg-4">
+                <div class="card card-custom">
+                    <div class="card-header bg-white border-0">
+                        <h5 class="fw-bold mb-0">Register Vehicle</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label">Vehicle ID</label>
+                            <input type="text" id="veh-id" class="form-control" placeholder="VH001" maxlength="10">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Owner Name</label>
+                            <input type="text" id="owner-name" class="form-control" placeholder="John Doe">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Vehicle Type</label>
+                            <select id="vehicle-type" class="form-select">
+                                <option value="car">Car</option>
+                                <option value="bike">Motorcycle</option>
+                                <option value="truck">Truck</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        <button onclick="addVehicle()" class="btn btn-primary-custom w-100">
+                            <i class="bi bi-plus-circle me-2"></i>Add Vehicle
+                        </button>
+                    </div>
+                </div>
+
+                <!-- System Settings -->
+                <div class="card card-custom mt-4">
+                    <div class="card-header bg-white border-0">
+                        <h5 class="fw-bold mb-0">System Settings</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label">Parking Rate (Rs./sec)</label>
+                            <input type="number" id="admin-rate-input" class="form-control" step="0.01" min="0.01" value="0.01">
+                        </div>
+                        <button onclick="updateAdminRate()" class="btn btn-primary-custom w-100">
+                            <i class="bi bi-save me-2"></i>Update Rate
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Reports Page -->
-    <div id="reports-page" class="min-h-screen hidden">
-        <!-- Header -->
-        <header class="bg-white border-b">
-            <div class="container mx-auto px-4 py-4">
-                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div class="flex items-center gap-3">
-                        <div class="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center">
-                            <i class="las la-chart-bar text-green-600 text-2xl"></i>
-                        </div>
-                        <div>
-                            <h1 class="text-2xl font-bold text-slate-800">Parking Analytics</h1>
-                            <p class="text-slate-500 text-sm">Detailed reports and insights</p>
-                        </div>
+    <div id="reports-page" class="d-none">
+        <div class="row">
+            <div class="col-12 col-lg-8">
+                <div class="card card-custom">
+                    <div class="card-header bg-white border-0">
+                        <h5 class="fw-bold mb-0">Vehicle Reports</h5>
                     </div>
-                </div>
-            </div>
-        </header>
-
-        <!-- Navigation -->
-        <nav class="bg-slate-50 border-b">
-            <div class="container mx-auto px-4">
-                <div class="flex space-x-1 py-2">
-                    <a href="#" onclick="showPage('dashboard')"
-                        class="px-4 py-3 rounded-lg flex items-center gap-2 font-medium text-slate-600 hover:text-green-600">
-                        <i class="las la-arrow-left"></i>
-                        Back to Dashboard
-                    </a>
-                    <a href="#" onclick="showPage('admin')"
-                        class="px-4 py-3 rounded-lg flex items-center gap-2 font-medium text-slate-600 hover:text-green-600">
-                        <i class="las la-car"></i>
-                        Vehicle Management
-                    </a>
-                    <a href="#" onclick="showPage('reports')"
-                        class="px-4 py-3 rounded-lg flex items-center gap-2 font-medium bg-green-100 text-green-600">
-                        <i class="las la-chart-pie"></i>
-                        Reports
-                    </a>
-                </div>
-            </div>
-        </nav>
-
-        <!-- Main Content -->
-        <main class="container mx-auto px-4 py-6">
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <!-- Left Column -->
-                <div class="lg:col-span-2 space-y-6">
-                    <!-- Summary Reports -->
-                    <div class="bg-white rounded-xl p-6 card-shadow">
-                        <div class="flex items-center gap-3 mb-6">
-                            <div class="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center">
-                                <i class="las la-chart-pie text-green-600 text-xl"></i>
-                            </div>
-                            <h2 class="text-xl font-semibold text-slate-800">Vehicle Summary</h2>
-                        </div>
-
-                        <div id="reports-content" class="min-h-[300px] flex items-center justify-center">
-                            <div class="text-center">
-                                <div
-                                    class="w-16 h-16 border-2 border-dashed border-slate-300 rounded-full flex items-center justify-center mx-auto mb-4">
-                                    <i class="las la-chart-bar text-slate-400 text-2xl"></i>
+                    <div class="card-body">
+                        <div id="reports-content">
+                            <div class="text-center py-5">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Loading...</span>
                                 </div>
-                                <p class="text-slate-500">Loading reports...</p>
                             </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Right Column -->
-                <div class="space-y-6">
-                    <!-- Filters -->
-                    <div class="bg-white rounded-xl p-6 card-shadow">
-                        <div class="flex items-center gap-3 mb-6">
-                            <div class="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
-                                <i class="las la-filter text-blue-600 text-xl"></i>
-                            </div>
-                            <h2 class="text-xl font-semibold text-slate-800">Filters</h2>
-                        </div>
-
-                        <div class="space-y-4">
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-2">Date Range</label>
-                                <select id="date-range"
-                                    class="w-full border border-slate-300 rounded-lg px-4 py-3 text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                                    <option value="today">Today</option>
-                                    <option value="week">This Week</option>
-                                    <option value="month">This Month</option>
-                                    <option value="all">All Time</option>
-                                </select>
-                            </div>
-
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-2">Vehicle Type</label>
-                                <select id="vehicle-type-filter"
-                                    class="w-full border border-slate-300 rounded-lg px-4 py-3 text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                                    <option value="all">All Vehicles</option>
-                                    <option value="registered">Registered Only</option>
-                                    <option value="visitor">Visitors Only</option>
-                                </select>
-                            </div>
-
-                            <button onclick="applyFilters()"
-                                class="w-full btn-primary py-3 rounded-lg font-medium flex items-center justify-center gap-2">
-                                <i class="las la-filter"></i>
-                                Apply Filters
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Export Options -->
-                    <div class="bg-white rounded-xl p-6 card-shadow">
-                        <div class="flex items-center gap-3 mb-6">
-                            <div class="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center">
-                                <i class="las la-file-export text-purple-600 text-xl"></i>
-                            </div>
-                            <h2 class="text-xl font-semibold text-slate-800">Export Data</h2>
-                        </div>
-
-                        <div class="space-y-3">
-                            <button onclick="exportCSV()"
-                                class="w-full border border-emerald-300 text-emerald-700 py-3 rounded-lg font-medium hover:bg-emerald-50 transition-colors flex items-center justify-center gap-2">
-                                <i class="las la-file-csv"></i>
-                                Export as CSV
-                            </button>
-
-                            <button onclick="exportPDF()"
-                                class="w-full border border-red-300 text-red-700 py-3 rounded-lg font-medium hover:bg-red-50 transition-colors flex items-center justify-center gap-2">
-                                <i class="las la-file-pdf"></i>
-                                Export as PDF
-                            </button>
                         </div>
                     </div>
                 </div>
             </div>
-        </main>
-    </div>
 
-    <!-- Toast Notification -->
-    <div id="toast" class="fixed top-4 right-4 z-50 hidden">
-        <div class="bg-white rounded-lg shadow-lg p-4 min-w-[300px] border-l-4 animate-slideIn">
-            <div class="flex items-center gap-3">
-                <i id="toast-icon" class="text-xl"></i>
-                <div class="flex-1">
-                    <p id="toast-message" class="text-sm font-medium"></p>
+            <div class="col-12 col-lg-4">
+                <!-- Filters -->
+                <div class="card card-custom mb-4">
+                    <div class="card-header bg-white border-0">
+                        <h5 class="fw-bold mb-0">Filters</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label">Date Range</label>
+                            <select id="date-range" class="form-select">
+                                <option value="today">Today</option>
+                                <option value="week">This Week</option>
+                                <option value="month">This Month</option>
+                                <option value="all">All Time</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Vehicle Type</label>
+                            <select id="vehicle-type-filter" class="form-select">
+                                <option value="all">All Vehicles</option>
+                                <option value="registered">Registered Only</option>
+                                <option value="visitor">Visitors Only</option>
+                            </select>
+                        </div>
+                        <button onclick="applyFilters()" class="btn btn-primary-custom w-100">
+                            <i class="bi bi-funnel me-2"></i>Apply Filters
+                        </button>
+                    </div>
                 </div>
-                <button onclick="hideToast()" class="text-slate-400 hover:text-slate-600">
-                    <i class="las la-times"></i>
+
+                <!-- Export -->
+                <div class="card card-custom">
+                    <div class="card-header bg-white border-0">
+                        <h5 class="fw-bold mb-0">Export Data</h5>
+                    </div>
+                    <div class="card-body">
+                        <button onclick="exportCSV()" class="btn btn-outline-success w-100 mb-2">
+                            <i class="bi bi-file-earmark-excel me-2"></i>Export CSV
+                        </button>
+                        <button onclick="exportPDF()" class="btn btn-outline-danger w-100">
+                            <i class="bi bi-file-earmark-pdf me-2"></i>Export PDF
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- Desktop Navigation -->
+<div class="container d-none d-lg-block mt-3">
+    <div class="d-flex gap-3">
+        <button class="btn btn-outline-primary" onclick="showPage('dashboard')">
+            <i class="bi bi-speedometer2"></i> Dashboard
+        </button>
+
+        <button class="btn btn-outline-primary" onclick="showPage('admin')">
+            <i class="bi bi-gear"></i> Admin
+        </button>
+
+        <button class="btn btn-outline-primary" onclick="showPage('reports')">
+            <i class="bi bi-bar-chart"></i> Reports
+        </button>
+    </div>
+</div>
+
+
+<!-- Bottom Navigation (Mobile) -->
+<nav class="bottom-nav d-lg-none">
+    <div class="container">
+        <div class="row">
+            <div class="col-4">
+                <a href="javascript:void(0)" onclick="showPage('dashboard')" class="bottom-nav-item active">
+                    <i class="bi bi-speedometer2"></i>
+                    <span>Dashboard</span>
+                </a>
+            </div>
+            <div class="col-4">
+                <a href="javascript:void(0)" onclick="showPage('admin')" class="bottom-nav-item">
+
+                <i class="bi bi-gear"></i>
+                    <span>Admin</span>
+                </a>
+            </div>
+            <div class="col-4">
+                <a href="javascript:void(0)" onclick="showPage('reports')" class="bottom-nav-item">
+                    <i class="bi bi-bar-chart"></i>
+                    <span>Reports</span>
+                </a>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- Fire Alert Modal -->
+<div class="modal fade" id="fireModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content modal-custom">
+            <div class="modal-header border-0">
+                <h5 class="modal-title text-danger">
+                    <i class="bi bi-fire me-2"></i>FIRE ALERT
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-danger">
+                    <div class="d-flex">
+                        <i class="bi bi-exclamation-triangle-fill me-3 fs-4"></i>
+                        <div>
+                            <h6 class="alert-heading">Fire Detected!</h6>
+                            <p class="mb-1 small">Immediate attention required</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="row g-2">
+                    <div class="col-6">
+                        <small class="text-muted">Status</small>
+                        <p class="fw-bold" id="fire-modal-status">ACTIVE</p>
+                    </div>
+                    <div class="col-6">
+                        <small class="text-muted">Gas Level</small>
+                        <p class="fw-bold" id="fire-modal-gas">--</p>
+                    </div>
+                    <div class="col-12">
+                        <small class="text-muted">Reason</small>
+                        <p class="fw-bold" id="fire-modal-reason">--</p>
+                    </div>
+                    <div class="col-6">
+                        <small class="text-muted">Last Update</small>
+                        <p class="fw-bold" id="fire-modal-time">--</p>
+                    </div>
+                    <div class="col-6">
+                        <small class="text-muted">Device</small>
+                        <p class="fw-bold" id="fire-modal-device">--</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-danger" onclick="ackFireUI()" data-bs-dismiss="modal">
+                    <i class="bi bi-check-circle me-2"></i>Acknowledge
                 </button>
             </div>
         </div>
     </div>
+</div>
 
-    <script>
-        // Page Navigation
-        function showPage(page) {
-            const pages = ['dashboard', 'admin', 'reports'];
-            pages.forEach(p => {
-                document.getElementById(`${p}-page`).classList.add('hidden');
-            });
-            document.getElementById(`${page}-page`).classList.remove('hidden');
+<!-- Toast Container -->
+<div class="toast-container position-fixed top-0 end-0 p-3">
+    <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header">
+            <i id="toast-icon" class="bi bi-info-circle-fill me-2"></i>
+            <strong id="toast-title" class="me-auto">Notification</strong>
+            <small>Just now</small>
+            <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+        </div>
+        <div class="toast-body" id="toast-message">
+            Hello, world! This is a toast message.
+        </div>
+    </div>
+</div>
 
-            // Update active nav state
-            document.querySelectorAll('.nav-link').forEach(link => {
-                link.classList.remove('active');
-            });
+<!-- Bootstrap JS Bundle -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
-            if (page === 'dashboard') {
-                refreshDashboard();
-            } else if (page === 'admin') {
-                loadVehicles();
-                loadAdminRate();
-            } else if (page === 'reports') {
-                loadReports();
-            }
-        }
-        async function loadOverview() {
-            const res = await fetch('/api/report/overview');
+<script>
+    // Page Navigation
+    function showPage(page) {
+        const pages = ['dashboard', 'admin', 'reports'];
+
+        pages.forEach(p => {
+            const el = document.getElementById(`${p}-page`);
+            if (el) el.classList.add('d-none');
+        });
+
+        const activePage = document.getElementById(`${page}-page`);
+        if (activePage) activePage.classList.remove('d-none');
+
+        // Update bottom nav active state
+        document.querySelectorAll('.bottom-nav-item').forEach(item => {
+            item.classList.remove('active');
+        });
+
+        document.querySelectorAll(`[onclick="showPage('${page}')"]`).forEach(item => {
+            item.classList.add('active');
+        });
+
+        // Load page data
+        if (page === 'dashboard') refreshDashboard();
+        if (page === 'admin') { loadVehicles(); loadAdminRate(); }
+        if (page === 'reports') loadReports();
+    }
+
+
+    // Toast Notification
+    function showToast(message, type = 'info', title = 'Notification') {
+        const toastEl = document.getElementById('liveToast');
+        const toastIcon = document.getElementById('toast-icon');
+        const toastTitle = document.getElementById('toast-title');
+        const toastMessage = document.getElementById('toast-message');
+
+        let icon = 'bi-info-circle-fill';
+        let color = 'text-primary';
+
+        if (type === 'success') { icon = 'bi-check-circle-fill'; color = 'text-success'; }
+        if (type === 'error') { icon = 'bi-exclamation-triangle-fill'; color = 'text-danger'; }
+        if (type === 'warning') { icon = 'bi-exclamation-circle-fill'; color = 'text-warning'; }
+
+        toastIcon.className = `${icon} ${color} me-2`;
+        toastTitle.textContent = title;
+        toastMessage.textContent = message;
+
+        new bootstrap.Toast(toastEl).show();
+    }
+
+    // ================= DASHBOARD =================
+
+    async function refreshDashboard() {
+        try {
+            const res = await fetch('/api/status');
             const data = await res.json();
 
-            document.getElementById('today-revenue').textContent =
-                data.todayRevenue.toFixed(2);
+            updateSlotStatus(1, data.slot1State);
+            updateSlotStatus(2, data.slot2State);
+            updateActiveVehicles(data.active);
+            setFireUI(data.fire);
 
-            document.getElementById('total-vehicles-today').textContent =
-                data.totalVehicles;
+            document.getElementById('rate-display').textContent = data.ratePerSecond.toFixed(2);
+            document.getElementById('rate-mobile').textContent = data.ratePerSecond.toFixed(2);
 
-            document.getElementById('avg-duration').textContent =
-                data.avgDuration + 's';
+            document.getElementById('last-updated').textContent =
+                new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-            document.getElementById('avg-cost').textContent =
-                data.avgCost.toFixed(2);
+        } catch (error) {
+            console.error(error);
+            showToast('Failed to load dashboard', 'error');
+        }
+    }
+
+    function updateSlotStatus(slot, state) {
+        const status = document.getElementById(`slot${slot}-status`);
+        const icon = document.getElementById(`slot${slot}-icon`);
+        const details = document.getElementById(`slot${slot}-details`);
+
+        status.className = 'badge-status';
+        status.textContent = state;
+
+        if (state === 'OCCUPIED') {
+            status.classList.add('badge-occupied');
+            icon.className = 'slot-icon bg-danger bg-opacity-10 text-danger me-3';
+            details.textContent = 'Vehicle parked';
+        }
+        else if (state === 'BOOKED') {
+            status.classList.add('badge-booked');
+            icon.className = 'slot-icon bg-warning bg-opacity-10 text-warning me-3';
+            details.textContent = 'Reserved - waiting arrival';
+        }
+        else {
+            status.classList.add('badge-free');
+            icon.className = 'slot-icon bg-success bg-opacity-10 text-success me-3';
+            details.textContent = 'Available for parking';
         }
 
-        // Dashboard Functions
-        async function refreshDashboard() {
-            try {
-                const res = await fetch('/api/status');
-                const data = await res.json();
-                setFireUI(data.fire);
+        updateAvailableSlots();
+    }
 
+    function updateAvailableSlots() {
+        const s1 = document.getElementById('slot1-status').textContent;
+        const s2 = document.getElementById('slot2-status').textContent;
 
-                // Update slot status
-                updateSlotStatus(1, data.slot1State);
-                updateSlotStatus(2, data.slot2State);
+        let free = 0;
+        if (s1 === 'FREE') free++;
+        if (s2 === 'FREE') free++;
 
+        document.getElementById('available-slots').textContent = free;
+        document.getElementById('available-slots-mobile').textContent = free;
+    }
 
-                // Update active vehicles
-                updateActiveVehicles(data.active);
+    function updateActiveVehicles(vehicles) {
+        const tbody = document.getElementById('active-vehicles-body');
+        const activeCount = document.getElementById('active-count');
+        const activeNow = document.getElementById('active-now');
+        const mobile = document.getElementById('active-count-mobile');
 
-                // 🔥 REAL revenue + reports data
-                loadOverview();
-
-            } catch (error) {
-                console.error('Dashboard refresh error:', error);
-                showToast('Failed to load dashboard data', 'error');
-            }
+        if (!vehicles || vehicles.length === 0) {
+            tbody.innerHTML = `
+                <tr><td colspan="5" class="text-center py-5 text-muted">
+                    No active vehicles
+                </td></tr>`;
+            activeCount.textContent = '0 vehicles';
+            activeNow.textContent = '0';
+            mobile.textContent = '0';
+            return;
         }
 
-
-        function updateSlotStatus(slotNumber, state) {
-            const card = document.getElementById(`slot${slotNumber}-card`);
-            const status = document.getElementById(`slot${slotNumber}-status`);
-            const icon = document.getElementById(`slot${slotNumber}-icon`);
-            const details = document.getElementById(`slot${slotNumber}-details`);
-
-            // Reset classes
-            status.className = 'status-badge';
-            icon.className = 'w-12 h-12 rounded-lg flex items-center justify-center';
-
-            if (state === 'OCCUPIED') {
-                status.textContent = 'OCCUPIED';
-                status.classList.add('status-occupied');
-
-                icon.classList.add('bg-red-100');
-                details.textContent = 'Vehicle parked';
-
-            } else if (state === 'BOOKED') {
-                status.textContent = 'BOOKED';
-                status.classList.add('status-booked');
-
-                icon.classList.add('bg-yellow-100');
-                details.textContent = 'Reserved – waiting arrival';
-
-            } else {
-                status.textContent = 'FREE';
-                status.classList.add('status-free');
-
-                icon.classList.add('bg-emerald-100');
-                details.textContent = 'Available for parking';
-            }
-        }
-
-
-        function updateActiveVehicles(vehicles, slot1State, slot2State) {
-
-            const tbody = document.getElementById('active-vehicles-body');
-            const count = document.getElementById('active-count');
-            const activeCountDisplay = document.getElementById('active-count-display');
-            const activeNow = document.getElementById('active-now');
-            const availableSlots = document.getElementById('available-slots');
-
-            if (!vehicles || vehicles.length === 0) {
-                tbody.innerHTML = `
-            <tr>
-                <td colspan="5" class="py-8 text-center text-slate-500">
-                    <p>No active vehicles</p>
-                </td>
-            </tr>
-        `;
-                count.textContent = '0 vehicles';
-                activeCountDisplay.textContent = '0';
-                activeNow.textContent = '0';
-            } else {
-                let html = '';
-                vehicles.forEach(v => {
-                    html += `
+        let html = '';
+        vehicles.forEach(v => {
+            html += `
                 <tr>
                     <td>${v.vehicle}</td>
                     <td>${v.ownerName || 'Visitor'}</td>
                     <td>${v.duration}s</td>
                     <td>Rs.${v.cost}</td>
-                    <td>Parked</td>
-                </tr>
-            `;
-                });
-                tbody.innerHTML = html;
-                count.textContent = `${vehicles.length} vehicle(s)`;
-                activeCountDisplay.textContent = vehicles.length;
-                activeNow.textContent = vehicles.length;
-            }
+                    <td><span class="badge bg-success">Parked</span></td>
+                </tr>`;
+        });
 
-            // ✅ SLOT CALCULATION (NO GLOBALS)
-            let free = 0;
-            if (slot1State === 'FREE') free++;
-            if (slot2State === 'FREE') free++;
-            availableSlots.textContent = free;
+        tbody.innerHTML = html;
+        activeCount.textContent = `${vehicles.length} vehicles`;
+        activeNow.textContent = vehicles.length;
+        mobile.textContent = vehicles.length;
+    }
+
+    // ================= FIRE =================
+
+    function setFireUI(fire) {
+        const indicator = document.getElementById('fire-indicator');
+
+        if (fire && fire.active) {
+            indicator.classList.remove('d-none');
+            document.title = '🔥 FIRE - Mirai Parking';
+
+            document.getElementById('fire-modal-status').textContent = 'ACTIVE';
+            document.getElementById('fire-modal-gas').textContent = fire.gas || '--';
+            document.getElementById('fire-modal-reason').textContent = fire.reason || '--';
+            document.getElementById('fire-modal-time').textContent = fire.lastUpdate || '--';
+            document.getElementById('fire-modal-device').textContent = fire.device || '--';
+
+            new bootstrap.Modal(document.getElementById('fireModal')).show();
+        } else {
+            indicator.classList.add('d-none');
+            document.title = 'Mirai RFID Parking System';
+        }
+    }
+
+    function openFireModal() {
+        new bootstrap.Modal(document.getElementById('fireModal')).show();
+    }
+
+    function ackFireUI() {
+        showToast('Fire alert acknowledged', 'success');
+    }
+
+    // ================= BOOKING =================
+
+    async function bookSlot() {
+        const vehicle = document.getElementById('book-vehicle').value.trim();
+        const slot = document.getElementById('book-slot').value;
+
+        if (!vehicle) {
+            showToast('Enter Vehicle ID', 'warning');
+            return;
         }
 
+        try {
+            const res = await fetch(`/api/book?vehicle=${vehicle}&slot=${slot}`, { method: 'POST' });
+            const text = await res.text();
 
-        // Admin Functions
-        async function loadVehicles() {
-            try {
-                const res = await fetch('/api/admin/list');
-                const data = await res.json();
+            showToast(text, 'success');
+            document.getElementById('book-vehicle').value = '';
+            refreshDashboard();
 
-                const tbody = document.getElementById('vehicles-body');
-                const count = document.getElementById('registered-count');
+        } catch {
+            showToast('Booking failed', 'error');
+        }
+    }
 
-                if (!data || data.length === 0) {
-                    tbody.innerHTML = `
-                        <tr>
-                            <td colspan="5" class="py-8 text-center text-slate-500">
-                                <div class="flex flex-col items-center">
-                                    <div class="w-16 h-16 border-2 border-dashed border-slate-300 rounded-full flex items-center justify-center mb-3">
-                                        <i class="las la-car text-slate-400 text-2xl"></i>
-                                    </div>
-                                    <p>No registered vehicles found</p>
-                                </div>
-                            </td>
-                        </tr>
-                    `;
-                    count.textContent = '0 vehicles';
-                    return;
-                }
+    // ================= ADMIN =================
 
-                let html = '';
-                data.forEach(v => {
-                    html += `
-                    <tr class="table-row">
-                        <td class="py-3 px-4">
-                            <span class="font-medium text-slate-800">${v.vehicleId}</span>
-                        </td>
-                        <td class="py-3 px-4">
-                            <span class="text-slate-600">${v.ownerName || 'Not specified'}</span>
-                        </td>
-                        <td class="py-3 px-4">
-                            <span class="text-slate-600">Car</span>
-                        </td>
-                        <td class="py-3 px-4">
-                            <span class="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">
-                                <i class="las la-check-circle mr-1"></i> Registered
-                            </span>
-                        </td>
-                        <td class="py-3 px-4">
+    async function loadVehicles() {
+        try {
+            const res = await fetch('/api/admin/list');
+            const data = await res.json();
+
+            const tbody = document.getElementById('vehicles-body');
+            const count = document.getElementById('registered-count');
+
+            if (!data || data.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-5">No vehicles</td></tr>`;
+                count.textContent = '0 vehicles';
+                return;
+            }
+
+            let html = '';
+            data.forEach(v => {
+                html += `
+                    <tr>
+                        <td>${v.vehicleId}</td>
+                        <td>${v.ownerName || 'N/A'}</td>
+                        <td><span class="badge bg-info">Car</span></td>
+                        <td><span class="badge bg-success">Registered</span></td>
+                        <td>
                             <button onclick="deleteVehicle('${v.vehicleId}')"
-                                    class="px-3 py-1 bg-red-50 text-red-600 rounded text-sm hover:bg-red-100 transition-colors">
-                                <i class="las la-trash mr-1"></i> Delete
+                                class="btn btn-sm btn-outline-danger">
+                                <i class="bi bi-trash"></i>
                             </button>
                         </td>
-                    </tr>
-                    `;
-                });
+                    </tr>`;
+            });
 
-                tbody.innerHTML = html;
-                count.textContent = `${data.length} vehicle${data.length !== 1 ? 's' : ''}`;
+            tbody.innerHTML = html;
+            count.textContent = `${data.length} vehicles`;
 
-            } catch (error) {
-                console.error('Load vehicles error:', error);
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="5" class="py-8 text-center text-red-500">
-                            <i class="las la-exclamation-triangle text-2xl mb-2 block"></i>
-                            <p>Error loading vehicles</p>
-                        </td>
-                    </tr>
-                `;
-                showToast('Failed to load vehicles', 'error');
-            }
+        } catch {
+            showToast('Failed to load vehicles', 'error');
         }
-        async function bookSlot() {
-            const vehicle = document.getElementById('book-vehicle').value;
-            const slot = document.getElementById('book-slot').value;
+    }
 
-            const res = await fetch(
-                `/api/book?vehicle=${vehicle}&slot=${slot}`,
-                { method: 'POST' }
-            );
+    async function addVehicle() {
+        const vehicle = document.getElementById('veh-id').value.trim();
+        const owner = document.getElementById('owner-name').value.trim();
 
-            const text = await res.text();
-            alert(text);
+        if (!vehicle) {
+            showToast('Vehicle ID required', 'warning');
+            return;
         }
 
+        try {
+            await fetch(`/api/admin/add?vehicle=${vehicle}&name=${owner}`);
+            showToast('Vehicle added', 'success');
+            document.getElementById('veh-id').value = '';
+            document.getElementById('owner-name').value = '';
+            loadVehicles();
 
-        async function addVehicle() {
-            const vehicleId = document.getElementById('veh-id').value.trim();
-            const ownerName = document.getElementById('owner-name').value.trim();
-            const vehicleType = document.getElementById('vehicle-type').value;
-
-            if (!vehicleId) {
-                showToast('Please enter a Vehicle ID', 'warning');
-                return;
-            }
-
-            try {
-                await fetch(`/api/admin/add?vehicle=${vehicleId}&name=${ownerName}`);
-
-                // Clear inputs
-                document.getElementById('veh-id').value = '';
-                document.getElementById('owner-name').value = '';
-
-                // Reload vehicles
-                loadVehicles();
-
-                showToast('Vehicle added successfully!', 'success');
-
-            } catch (error) {
-                console.error('Add vehicle error:', error);
-                showToast('Error adding vehicle', 'error');
-            }
+        } catch {
+            showToast('Add failed', 'error');
         }
+    }
 
-        async function deleteVehicle(vehicleId) {
-            if (!confirm(`Are you sure you want to delete vehicle ${vehicleId}?`)) {
-                return;
-            }
+    async function deleteVehicle(vehicleId) {
+        if (!confirm(`Delete ${vehicleId}?`)) return;
 
-            try {
-                await fetch(`/api/admin/delete?vehicle=${vehicleId}`);
-                loadVehicles();
-                showToast(`Vehicle ${vehicleId} deleted successfully!`, 'success');
-            } catch (error) {
-                console.error('Delete vehicle error:', error);
-                showToast('Error deleting vehicle', 'error');
-            }
+        try {
+            await fetch(`/api/admin/delete?vehicle=${vehicleId}`);
+            showToast('Vehicle deleted', 'success');
+            loadVehicles();
+
+        } catch {
+            showToast('Delete failed', 'error');
         }
+    }
 
-        let lastFireActive = null;
-        let fireAcked = false;
-
-        function openFireModal() {
-            document.getElementById('fire-modal')?.classList.remove('hidden');
-        }
-        function closeFireModal() {
-            document.getElementById('fire-modal')?.classList.add('hidden');
-        }
-        function ackFireUI() {
-            fireAcked = true;
-            closeFireModal();
-        }
-
-        function setFireUI(fire) {
-            const icon = document.getElementById('fire-indicator');
-            if (!icon) return;
-
-            const active = !!fire?.active;
-
-            // Show/Hide indicator
-            if (active) {
-                icon.classList.remove('hidden');
-                icon.classList.add('text-red-600', 'animate-pulse');
-
-                // Keep indicator until fire ends (your requirement)
-                document.title = '🔥 FIRE ALERT - Mirai';
-
-                // Update modal values continuously
-                document.getElementById('fire-modal-status').textContent = 'ACTIVE';
-                document.getElementById('fire-modal-gas').textContent = fire.gas ?? '--';
-                document.getElementById('fire-modal-reason').textContent = fire.reason ?? '--';
-                document.getElementById('fire-modal-time').textContent = fire.lastUpdate ?? '--';
-                document.getElementById('fire-modal-device').textContent = fire.device ?? '--';
-
-            } else {
-                // Fire gone -> everything disappears and resets
-                icon.classList.add('hidden');
-                icon.classList.remove('text-red-600', 'animate-pulse');
-                document.title = 'Mirai RFID Parking System';
-
-                fireAcked = false;         // next fire event can show modal again
-                closeFireModal();          // ensure modal closes when cleared
-            }
-
-            // Open modal only once when fire becomes active (no spam)
-            if (lastFireActive === false && active && !fireAcked) {
-                openFireModal();
-            }
-
-            // Initialize lastFireActive on first run
-            if (lastFireActive === null) lastFireActive = active;
-            else lastFireActive = active;
-        }
-
-
-        async function loadAdminRate() {
-            try {
-                const res = await fetch('/api/status');
-                const data = await res.json();
+    function loadAdminRate() {
+        fetch('/api/status')
+            .then(res => res.json())
+            .then(data => {
                 document.getElementById('admin-rate-input').value = data.ratePerSecond;
-            } catch (error) {
-                console.error('Load rate error:', error);
-            }
+            });
+    }
+
+    async function updateAdminRate() {
+        const rate = document.getElementById('admin-rate-input').value;
+
+        if (!rate || rate <= 0) {
+            showToast('Enter valid rate', 'warning');
+            return;
         }
 
-        async function updateAdminRate() {
-            const rate = document.getElementById('admin-rate-input').value;
-            if (!rate || rate <= 0) {
-                showToast('Please enter a valid rate', 'warning');
+        try {
+            await fetch(`/api/setRate?rate=${rate}`);
+            showToast('Rate updated', 'success');
+
+        } catch {
+            showToast('Update failed', 'error');
+        }
+    }
+
+    // ================= REPORTS =================
+
+    async function loadReports() {
+        try {
+            const res = await fetch('/api/report/summary');
+            const data = await res.json();
+
+            const container = document.getElementById('reports-content');
+
+            if (!data || data.length === 0) {
+                container.innerHTML = '<p class="text-center text-muted">No reports</p>';
                 return;
             }
 
-            try {
-                await fetch(`/api/setRate?rate=${rate}`);
-                loadAdminRate();
-                showToast('Rate updated successfully!', 'success');
-            } catch (error) {
-                console.error('Update rate error:', error);
-                showToast('Error updating rate', 'error');
-            }
-        }
+            let html = `
+        <div class="row g-3">
+        `;
 
-        async function updateRate() {
-            const rate = document.getElementById('rate-input').value;
-            if (!rate || rate <= 0) {
-                showToast('Please enter a valid rate', 'warning');
-                return;
-            }
+            data.forEach(r => {
+                const avg = r.totalCost / (r.entries || 1);
 
-            try {
-                await fetch(`/api/setRate?rate=${rate}`);
-                showToast('Rate updated successfully!', 'success');
-                refreshDashboard();
-            } catch (error) {
-                console.error('Update rate error:', error);
-                showToast('Error updating rate', 'error');
-            }
-        }
+                html += `
+            <div class="col-12 col-md-6 col-lg-4">
+                <div class="card card-custom h-100">
+                    <div class="card-body">
 
-        function exportVehicleData() {
-            showToast('Exporting vehicle data...', 'info');
-        }
-
-        // Reports Functions
-        async function loadReports() {
-            try {
-                const res = await fetch('/api/report/summary');
-                const data = await res.json();
-
-                const container = document.getElementById('reports-content');
-
-                if (!data || data.length === 0) {
-                    container.innerHTML = `
-                        <div class="text-center text-slate-500">
-                            <div class="w-16 h-16 border-2 border-dashed border-slate-300 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <i class="las la-chart-bar text-slate-400 text-2xl"></i>
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="slot-icon bg-primary bg-opacity-10 text-primary me-3">
+                                <i class="bi bi-car-front"></i>
                             </div>
-                            <p>No parking records available</p>
+
+                            <h6 class="fw-bold mb-0">
+                                <a href="javascript:void(0)"
+                                   onclick="openVehicleReport('${r.vehicle}')"
+                                   class="text-decoration-none text-primary">
+                                   ${r.vehicle}
+                                </a>
+                            </h6>
                         </div>
-                    `;
-                    return;
-                }
 
-                let html = '<div class="grid grid-cols-1 md:grid-cols-2 gap-4">';
-                data.forEach(r => {
-                    const avgCost = r.totalCost / (r.entries || 1);
-                    function openVehicleReport(vehicleId) {
-                        window.location.href =
-                            `/report-detail.html?vehicle=${encodeURIComponent(vehicleId)}`;
-                    }
+                        <p class="mb-1">Entries: <strong>${r.entries}</strong></p>
+                        <p class="mb-1">Total Time: <strong>${r.totalTime || 'N/A'}s</strong></p>
+                        <p class="mb-1 text-success">
+                            Total Cost: <strong>Rs.${r.totalCost.toFixed(2)}</strong>
+                        </p>
+                        <p class="mb-0">
+                            Avg. Cost: <strong>Rs.${avg.toFixed(2)}</strong>
+                        </p>
 
-                    html += `
-                    <div onclick="openVehicleReport('${r.vehicle}')"
-                         class="bg-white border border-slate-200 rounded-xl p-5 hover:border-green-300 transition-colors cursor-pointer">
-                        <div class="flex items-center gap-3 mb-4">
-                            <div class="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
-                                <i class="las la-car text-blue-600"></i>
-                            </div>
-                            <h3 class="font-semibold text-slate-800">${r.vehicle}</h3>
-                        </div>
-                        <div class="space-y-2">
-                            <div class="flex justify-between">
-                                <span class="text-slate-600">Entries:</span>
-                                <span class="font-medium">${r.entries}</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="text-slate-600">Total Time:</span>
-                                <span class="font-medium">${r.totalTime}s</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="text-slate-600">Total Cost:</span>
-                                <span class="font-bold text-green-600">Rs.${r.totalCost.toFixed(2)}</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="text-slate-600">Avg. Cost:</span>
-                                <span class="font-medium">Rs.${avgCost.toFixed(2)}</span>
-                            </div>
-                        </div>
                     </div>
-                    `;
-                });
-                html += '</div>';
-
-                container.innerHTML = html;
-
-            } catch (error) {
-                console.error('Load reports error:', error);
-                container.innerHTML = `
-                    <div class="text-center text-red-500">
-                        <i class="las la-exclamation-triangle text-2xl mb-2 block"></i>
-                        <p>Failed to load reports</p>
-                    </div>
-                `;
-                showToast('Failed to load reports', 'error');
-            }
-        }
-
-        function applyFilters() {
-            const dateRange = document.getElementById('date-range').value;
-            const vehicleType = document.getElementById('vehicle-type-filter').value;
-            showToast(`Filters applied: ${dateRange}, ${vehicleType}`, 'info');
-        }
-
-        function exportCSV() {
-            showToast('Exporting data as CSV...', 'info');
-        }
-
-        function exportPDF() {
-            showToast('Exporting data as PDF...', 'info');
-        }
-
-        // Toast Notification System
-        function showToast(message, type = 'info') {
-            const toast = document.getElementById('toast');
-            const toastIcon = document.getElementById('toast-icon');
-            const toastMessage = document.getElementById('toast-message');
-
-            // Set icon and color based on type
-            let icon = 'las la-info-circle';
-            let color = 'border-blue-500 text-blue-500';
-
-            switch (type) {
-                case 'success':
-                    icon = 'las la-check-circle';
-                    color = 'border-green-500 text-green-500';
-                    break;
-                case 'error':
-                    icon = 'las la-exclamation-circle';
-                    color = 'border-red-500 text-red-500';
-                    break;
-                case 'warning':
-                    icon = 'las la-exclamation-triangle';
-                    color = 'border-amber-500 text-amber-500';
-                    break;
-            }
-
-            toastIcon.className = icon + ' ' + color.split(' ')[1];
-            toast.querySelector('.animate-slideIn').className = `bg-white rounded-lg shadow-lg p-4 min-w-[300px] border-l-4 animate-slideIn ${color.split(' ')[0]}`;
-            toastMessage.textContent = message;
-
-            // Show toast
-            toast.classList.remove('hidden');
-
-            // Auto hide after 3 seconds
-            setTimeout(hideToast, 3000);
-        }
-
-        function hideToast() {
-            document.getElementById('toast').classList.add('hidden');
-        }
-
-        function openVehicleReport(vehicleId) {
-            window.location.href =
-                `https://mirai.cyanworks.org/report-detail.html?vehicle=${encodeURIComponent(vehicleId)}`;
-        }
-
-
-        // Initialize
-        document.addEventListener('DOMContentLoaded', function () {
-            // Set dashboard as default page
-            showPage('dashboard');
-
-            // Auto-refresh dashboard every 2 seconds
-            setInterval(refreshDashboard, 2000);
-
-            // Add slideIn animation
-            const style = document.createElement('style');
-            style.textContent = `
-                @keyframes slideIn {
-                    from { transform: translateX(100%); opacity: 0; }
-                    to { transform: translateX(0); opacity: 1; }
-                }
-                .animate-slideIn {
-                    animation: slideIn 0.3s ease-out;
-                }
+                </div>
+            </div>
             `;
-            document.head.appendChild(style);
-        });
-    </script>
-</body>
+            });
 
+            html += `</div>`;
+            container.innerHTML = html;
+
+        } catch {
+            showToast('Failed to load reports', 'error');
+        }
+    }
+
+    function openVehicleReport(vehicleId) {
+        window.location.href = `/report-detail.html?vehicle=${vehicleId}`;
+    }
+
+
+
+    function applyFilters() {
+        showToast('Filters applied', 'info');
+    }
+
+    function exportCSV() {
+        showToast('Exporting CSV...', 'info');
+    }
+
+    function exportPDF() {
+        showToast('Exporting PDF...', 'info');
+    }
+
+    // ================= INIT =================
+
+    setInterval(refreshDashboard, 5000);
+
+    document.addEventListener('DOMContentLoaded', () => {
+        refreshDashboard();
+    });
+    document.addEventListener('DOMContentLoaded', () => {
+        showPage('dashboard');
+    });
+
+</script>
+
+</body>
 </html>

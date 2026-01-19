@@ -890,10 +890,14 @@
 
     // ================= FIRE =================
 
+    window.fireWasActive = false;
+
     function setFireUI(fire) {
         const indicator = document.getElementById('fire-indicator');
 
         if (fire && fire.active) {
+            window.fireWasActive = true;
+
             indicator.classList.remove('d-none');
             document.title = '🔥 FIRE - Mirai Parking';
 
@@ -907,8 +911,15 @@
         } else {
             indicator.classList.add('d-none');
             document.title = 'Mirai RFID Parking System';
+
+            if (window.fireWasActive) {
+                console.log("Fire cleared → refreshing page");
+                window.fireWasActive = false;
+                location.reload();
+            }
         }
     }
+
 
     function openFireModal() {
         new bootstrap.Modal(document.getElementById('fireModal')).show();

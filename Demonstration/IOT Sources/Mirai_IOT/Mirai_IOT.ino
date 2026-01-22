@@ -18,7 +18,7 @@ bool sirenPlayed = false;
 
 
 // ---------------- RFID PINS ----------------
-#define SS_PIN 5   // RC522 SDA/SS
+#define SS_PIN 5   // RC522 SDA
 #define RST_PIN 4  // RC522 RST
 
 MFRC522 rfid(SS_PIN, RST_PIN);
@@ -308,8 +308,6 @@ void sendScanToServer(const String& uid, const String& text, bool isWrite) {
 
   Serial.print("Request: ");
   Serial.println(url);
-
-  http.begin(client,url);
   int httpCode = http.GET();
   Serial.print("HTTP response code: ");
   Serial.println(httpCode);

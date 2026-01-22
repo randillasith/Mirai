@@ -33,7 +33,7 @@ public class ParkingStore {
     public static String slot1State = "FREE";
     public static String slot2State = "FREE";
     // -------- SLOT BOOKING FLAGS --------
-    public static boolean slot1Booked = false;   // 🔥 ADD THIS
+    public static boolean slot1Booked = false;
     public static boolean slot2Booked = false;
 
     public static String slot1BookedVehicle = null;

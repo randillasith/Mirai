@@ -33,12 +33,12 @@ public class ParkingService {
         vehicle = vehicle.toUpperCase();
         LocalDateTime now = LocalDateTime.now();
 
-        // ❌ Unknown vehicle
+        //  Unknown vehicle
         if (!vehicleService.exists(vehicle)) {
             return "DENIED|Unknown Vehicle";
         }
 
-        // 🔑 Track session by VEHICLE (not UID)
+        //  Track session by VEHICLE (not UID)
         Session existing = ParkingStore.activeSessions.get(vehicle);
 
         /* ===================== ENTRY ===================== */
@@ -46,7 +46,7 @@ public class ParkingService {
 
             int in = ParkingStore.activeSessions.size();
 
-            // 🔥 Count BOOKED SLOTS
+            //  Count BOOKED SLOTS
             int bookedSlots = 0;
             if (ParkingStore.slot1BookedVehicle != null) bookedSlots++;
             if (ParkingStore.slot2BookedVehicle != null) bookedSlots++;
@@ -55,7 +55,7 @@ public class ParkingService {
                     vehicle.equals(ParkingStore.slot1BookedVehicle) ||
                             vehicle.equals(ParkingStore.slot2BookedVehicle);
 
-            // 🔥 FULL when (IN + BOOKED >= TOTAL_SLOTS)
+            // FULL when (IN + BOOKED >= TOTAL_SLOTS)
             if (in + bookedSlots >= TOTAL_SLOTS) {
                 if (!isBookedVehicle) {
                     return "FULL|Parking Full";
@@ -64,7 +64,7 @@ public class ParkingService {
 
 
 
-            // ✅ Consume booking if this vehicle was booked
+            //  Consume booking if this vehicle was booked
             if (vehicle.equals(ParkingStore.slot1BookedVehicle)) {
                 ParkingStore.slot1BookedVehicle = null;
                 ParkingStore.slot1State = "OCCUPIED";

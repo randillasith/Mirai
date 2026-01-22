@@ -19,7 +19,7 @@ public class StatusController {
 
         Map<String, Object> res = new HashMap<>();
 
-        // ✅ slot STATES (FREE / BOOKED / OCCUPIED)
+        //  slot STATES (FREE / BOOKED / OCCUPIED)
         res.put("slot1State", ParkingStore.slot1State);
         res.put("slot2State", ParkingStore.slot2State);
 

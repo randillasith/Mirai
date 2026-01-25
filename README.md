@@ -23,7 +23,7 @@ The project focuses on monitoring parking slot availability in real time using s
 ## System Overview
 1. Sensors detect whether a parking slot is occupied or free  
 2. A microcontroller (ESP32/Arduino) processes the sensor data  
-3. Data is sent to the backend via HTTP or MQTT  
+3. Data is sent to the backend via HTTP 
 4. The backend stores and processes the data  
 5. The web dashboard displays real-time parking status  
 

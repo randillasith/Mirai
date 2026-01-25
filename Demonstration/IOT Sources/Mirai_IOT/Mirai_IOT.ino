@@ -153,8 +153,8 @@ void updateSlot(int slot, int trigPin, int echoPin, bool& occState) {
   long d = readDistanceCm(trigPin, echoPin);
   bool newOcc;
 
-  // Threshold: < 30 cm = occupied (tune this per your sensor mounting)
-  if (d > 0 && d < 30) {
+  // Threshold: < 30 cm = occupied 
+  if (d > 0 && d < 10) {
     newOcc = true;
   } else {
     newOcc = false;

@@ -30,5 +30,12 @@ The project focuses on monitoring parking slot availability in real time using s
 ---
 
 
+##  System Architecture Diagram
+
+![Mirai System Architecture](Progress%20Report/System%20Arch.png)
+
+This diagram illustrates the overall architecture of the Mirai Smart Parking
+Management System, showing how sensors and actuators are connected to the ESP32,
+which communicates with the backend server, database, and web interface via the internet.
 
 

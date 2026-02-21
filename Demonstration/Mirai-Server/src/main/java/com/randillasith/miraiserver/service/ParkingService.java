@@ -17,28 +17,27 @@ public class ParkingService {
 
     private static final int TOTAL_SLOTS = 2;
 
-    public ParkingService(
-            VehicleService vehicleService,
-            ParkingHistoryRepository historyRepository
-    ) {
+    public ParkingService(VehicleService vehicleService,
+                          ParkingHistoryRepository historyRepository) {
         this.vehicleService = vehicleService;
         this.historyRepository = historyRepository;
     }
 
     /**
      * Handles RFID scan (ENTRY or EXIT)
+     * Correct Scan API: /api/scan?uid=AB12CD34&reader=1&text=VH001
      */
     public synchronized String handleScan(String uid, int reader, String vehicle) {
 
         vehicle = vehicle.toUpperCase();
         LocalDateTime now = LocalDateTime.now();
 
-        //  Unknown vehicle
+        // Unknown vehicle
         if (!vehicleService.exists(vehicle)) {
             return "DENIED|Unknown Vehicle";
         }
 
-        //  Track session by VEHICLE (not UID)
+        // Track session by VEHICLE (not UID)
         Session existing = ParkingStore.activeSessions.get(vehicle);
 
         /* ===================== ENTRY ===================== */
@@ -46,7 +45,7 @@ public class ParkingService {
 
             int in = ParkingStore.activeSessions.size();
 
-            //  Count BOOKED SLOTS
+            // Count booked slots
             int bookedSlots = 0;
             if (ParkingStore.slot1BookedVehicle != null) bookedSlots++;
             if (ParkingStore.slot2BookedVehicle != null) bookedSlots++;
@@ -55,27 +54,25 @@ public class ParkingService {
                     vehicle.equals(ParkingStore.slot1BookedVehicle) ||
                             vehicle.equals(ParkingStore.slot2BookedVehicle);
 
-            // FULL when (IN + BOOKED >= TOTAL_SLOTS)
-            if (in + bookedSlots >= TOTAL_SLOTS) {
-                if (!isBookedVehicle) {
-                    return "FULL|Parking Full";
-                }
+            // Parking FULL rule: (IN + BOOKED >= TOTAL_SLOTS)
+            // Allow entry only if this vehicle is the one already booked
+            if (in + bookedSlots >= TOTAL_SLOTS && !isBookedVehicle) {
+                return "FULL|Parking Full";
             }
 
-
-
-            //  Consume booking if this vehicle was booked
+            // Consume booking if this vehicle was booked
+            // IMPORTANT: mark as RESERVED (driver moving), not OCCUPIED
             if (vehicle.equals(ParkingStore.slot1BookedVehicle)) {
                 ParkingStore.slot1BookedVehicle = null;
-                ParkingStore.slot1State = "OCCUPIED";
+                ParkingStore.slot1Booked = false;
+                ParkingStore.slot1State = "RESERVED";
             }
 
             if (vehicle.equals(ParkingStore.slot2BookedVehicle)) {
                 ParkingStore.slot2BookedVehicle = null;
-                ParkingStore.slot2State = "OCCUPIED";
+                ParkingStore.slot2Booked = false;
+                ParkingStore.slot2State = "RESERVED";
             }
-
-            ParkingStore.activeBookings.remove(vehicle); // safety cleanup
 
             // Create new session
             Session s = new Session();
@@ -91,9 +88,7 @@ public class ParkingService {
 
         /* ===================== EXIT ===================== */
 
-        long durationSeconds =
-                Duration.between(existing.startTime, now).getSeconds();
-
+        long durationSeconds = Duration.between(existing.startTime, now).getSeconds();
         if (durationSeconds < 0) durationSeconds = 0;
 
         double cost = durationSeconds * ParkingStore.ratePerSecond;

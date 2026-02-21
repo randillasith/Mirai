@@ -466,6 +466,38 @@
             </div>
         </div>
     </div>
+    <!-- Current Bookings -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card card-custom">
+                <div class="card-header bg-white border-0">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="fw-bold mb-0">Current Bookings</h5>
+                        <span class="badge bg-warning text-dark" id="booking-count">0 bookings</span>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                            <tr>
+                                <th>Slot</th>
+                                <th>Vehicle</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                            </thead>
+                            <tbody id="bookings-body">
+                            <tr>
+                                <td colspan="4" class="text-center py-4 text-muted">No bookings</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Admin Page -->
     <div id="admin-page" class="d-none">
@@ -808,6 +840,7 @@
 
             document.getElementById('last-updated').textContent =
                 new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            loadBookings();
 
         } catch (error) {
             console.error(error);
@@ -951,6 +984,74 @@
 
         } catch {
             showToast('Booking failed', 'error');
+        }
+    }
+
+    async function loadBookings() {
+        try {
+            const res = await fetch('/api/bookings');
+            const bookings = await res.json();
+
+            const tbody = document.getElementById('bookings-body');
+            const count = document.getElementById('booking-count');
+
+            if (!bookings || bookings.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-muted">No bookings</td></tr>`;
+                count.textContent = '0 bookings';
+                return;
+            }
+
+            count.textContent = `${bookings.length} bookings`;
+
+            let html = '';
+            bookings.forEach(b => {
+                const disabled = b.occupied ? 'disabled' : '';
+                const title = b.occupied ? 'Slot occupied - cannot cancel' : 'Cancel booking';
+
+                html += `
+                <tr>
+                    <td>Slot ${b.slot}</td>
+                    <td>${b.vehicle}</td>
+                    <td><span class="badge bg-warning text-dark">${b.state || 'BOOKED'}</span></td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-danger"
+                                ${disabled}
+                                title="${title}"
+                                onclick="cancelBooking(${b.slot}, '${b.vehicle}')">
+                            <i class="bi bi-x-circle"></i> Cancel
+                        </button>
+                    </td>
+                </tr>
+            `;
+            });
+
+            tbody.innerHTML = html;
+
+        } catch (e) {
+            console.error(e);
+            showToast('Failed to load bookings', 'error');
+        }
+    }
+
+    async function cancelBooking(slot, vehicle) {
+        if (!confirm(`Cancel booking for ${vehicle} (Slot ${slot})?`)) return;
+
+        try {
+            const res = await fetch(`/api/cancel?slot=${slot}&vehicle=${vehicle}`, { method: 'POST' });
+            const text = await res.text();
+
+            if (text.includes('CANCELLED')) {
+                showToast(text, 'success');
+            } else {
+                showToast(text, 'warning');
+            }
+
+            refreshDashboard();
+            loadBookings();
+
+        } catch (e) {
+            console.error(e);
+            showToast('Cancel failed', 'error');
         }
     }
 

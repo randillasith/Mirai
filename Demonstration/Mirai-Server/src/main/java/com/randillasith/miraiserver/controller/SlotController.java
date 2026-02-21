@@ -25,12 +25,12 @@ public class SlotController {
             ParkingStore.slot1Occ = isOccupied;
 
             if (isOccupied) {
-                // 🔥 VEHICLE ARRIVED → CONSUME BOOKING
                 ParkingStore.slot1Booked = false;
+                ParkingStore.slot1BookedVehicle = null;
                 ParkingStore.slot1State = "OCCUPIED";
             } else {
-                ParkingStore.slot1State =
-                        ParkingStore.slot1Booked ? "BOOKED" : "FREE";
+                ParkingStore.slot1Booked = (ParkingStore.slot1BookedVehicle != null);
+                ParkingStore.slot1State = ParkingStore.slot1Booked ? "BOOKED" : "FREE";
             }
         }
 
@@ -39,10 +39,11 @@ public class SlotController {
 
             if (isOccupied) {
                 ParkingStore.slot2Booked = false;
+                ParkingStore.slot2BookedVehicle = null;
                 ParkingStore.slot2State = "OCCUPIED";
             } else {
-                ParkingStore.slot2State =
-                        ParkingStore.slot2Booked ? "BOOKED" : "FREE";
+                ParkingStore.slot2Booked = (ParkingStore.slot2BookedVehicle != null);
+                ParkingStore.slot2State = ParkingStore.slot2Booked ? "BOOKED" : "FREE";
             }
         }
 
